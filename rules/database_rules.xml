@@ -1,0 +1,268 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<database_rules project="TripVibe" version="1.0">
+
+  <meta>
+    <purpose>Правила работы с PostgreSQL и Prisma ORM в TripVibe. LLM MUST следовать при создании схем, миграций, queries и seed data.</purpose>
+    <stack>PostgreSQL 16, Prisma 6.x</stack>
+  </meta>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- SCHEMA DESIGN                                              -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+
+  <section id="schema">
+    <rule id="DB-001" severity="error">
+      <title>Prisma as single source of truth</title>
+      <description>
+        schema.prisma — единственный источник схемы БД.
+        Все изменения через prisma migrate dev. Ручной SQL — только для performance indexes с документированием.
+      </description>
+    </rule>
+
+    <rule id="DB-002" severity="error">
+      <title>UUID primary keys</title>
+      <description>
+        Все модели используют id String @id @default(cuid()) или uuid().
+        Auto-increment integer IDs — запрещены (проблемы при merge seed/migration).
+      </description>
+      <example_good><![CDATA[
+model Listing {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+      ]]></example_good>
+    </rule>
+
+    <rule id="DB-003" severity="error">
+      <title>Timestamps on all entities</title>
+      <description>Каждая модель MUST иметь createdAt DateTime @default(now()). Mutable entities — updatedAt DateTime @updatedAt.</description>
+    </rule>
+
+    <rule id="DB-004" severity="error">
+      <title>Soft enums via Prisma enum</title>
+      <description>
+        Ограниченные значения — Prisma enum, не free string:
+        PropertyType (APARTMENT, HOUSE, ROOM),
+        BookingStatus (PENDING, CONFIRMED, COMPLETED, CANCELLED).
+      </description>
+    </rule>
+
+    <rule id="DB-005" severity="warning">
+      <title>Denormalization for read performance</title>
+      <description>
+        Listing.averageRating и Listing.reviewCount — denormalized, обновляются при create/delete Review.
+        Не пересчитывать AVG() на каждый search query.
+      </description>
+    </rule>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- CORE MODELS REFERENCE                                      -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+
+  <section id="models">
+    <model name="User">
+      <fields>id, email @unique, name, avatarUrl?, passwordHash?, createdAt, updatedAt</fields>
+      <indexes>[email]</indexes>
+      <owner>shared</owner>
+    </model>
+
+    <model name="Listing">
+      <fields>
+        id, title, description @db.Text, city, country, lat Float, lng Float,
+        pricePerNight Int (копейки/центы — хранить в минимальных единицах),
+        cleaningFee Int, serviceFee Int,
+        propertyType PropertyType,
+        amenities String[] (e.g. ["wifi", "kitchen", "parking"]),
+        images String[] (URLs),
+        hostId → User, averageRating Float @default(0), reviewCount Int @default(0)
+      </fields>
+      <indexes>[city, country], [propertyType], [pricePerNight], [averageRating]</indexes>
+      <owner>listing</owner>
+    </model>
+
+    <model name="Booking">
+      <fields>
+        id, userId → User, listingId → Listing,
+        checkIn DateTime @db.Date, checkOut DateTime @db.Date,
+        guests Int, totalPrice Int,
+        status BookingStatus @default(PENDING)
+      </fields>
+      <indexes>[userId, status], [listingId, checkIn, checkOut]</indexes>
+      <constraints>
+        checkOut MUST be > checkIn.
+        Unique review per booking (Review.bookingId @unique).
+      </constraints>
+      <owner>booking</owner>
+    </model>
+
+    <model name="Favorite">
+      <fields>id, userId → User, listingId → Listing, createdAt</fields>
+      <indexes>[userId, listingId] @unique</indexes>
+      <owner>profile</owner>
+    </model>
+
+    <model name="Review">
+      <fields>
+        id, userId → User, listingId → Listing, bookingId → Booking @unique,
+        rating Int (1-5), text @db.Text, photos String[], createdAt
+      </fields>
+      <indexes>[listingId], [userId]</indexes>
+      <owner>reviews</owner>
+    </model>
+
+    <model name="Location">
+      <fields>id, name, type LocationType (CITY, COUNTRY), slug @unique, lat Float?, lng Float?</fields>
+      <indexes>[name], [slug]</indexes>
+      <owner>search</owner>
+    </model>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- QUERY PATTERNS                                             -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+
+  <section id="queries">
+    <rule id="Q-001" severity="error">
+      <title>Single Prisma client instance</title>
+      <description>
+        Import prisma from '@/lib/prisma'. Singleton pattern с globalThis guard для dev hot reload.
+        НЕ создавать new PrismaClient() в route handlers или components.
+      </description>
+    </rule>
+
+    <rule id="Q-002" severity="error">
+      <title>Select only needed fields</title>
+      <description>
+        Search/list endpoints MUST use select или include с конкретными полями.
+        Запрещён findMany без select на Listing (description — тяжёлое поле, не нужно в search).
+      </description>
+      <example_good><![CDATA[
+prisma.listing.findMany({
+  select: {
+    id: true, title: true, city: true, pricePerNight: true,
+    images: true, averageRating: true, reviewCount: true, propertyType: true,
+  },
+  where: { ... },
+});
+      ]]></example_good>
+    </rule>
+
+    <rule id="Q-003" severity="error">
+      <title>Transactions for multi-table writes</title>
+      <description>
+        createBooking + availability check, submitReview + update averageRating — prisma.$transaction().
+        Rollback при любой ошибке.
+      </description>
+    </rule>
+
+    <rule id="Q-004" severity="error">
+      <title>Availability overlap check</title>
+      <description>
+        Перед созданием Booking MUST проверить отсутствие пересечения дат:
+        existing.checkIn &lt; new.checkOut AND existing.checkOut &gt; new.checkIn
+        для status IN (CONFIRMED, PENDING) на том же listingId.
+      </description>
+    </rule>
+
+    <rule id="Q-005" severity="warning">
+      <title>Pagination required for lists</title>
+      <description>
+        search, reviews, trips — cursor-based или offset pagination.
+        Default limit: 20. Max limit: 50. Return meta: { total, page, hasMore }.
+      </description>
+    </rule>
+
+    <rule id="Q-006" severity="warning">
+      <title>Search filters as Prisma where</title>
+      <description>
+        priceMin/priceMax → pricePerNight gte/lte.
+        propertyType → equals enum.
+        amenities → hasEvery or hasSome depending on UX (AND vs OR — document in code).
+        city → equals or contains (case-insensitive via mode: 'insensitive').
+      </description>
+    </rule>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- MONEY & PRICING                                            -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+
+  <section id="money">
+    <rule id="MONEY-001" severity="error">
+      <title>Store prices in minor units</title>
+      <description>
+        pricePerNight, cleaningFee, serviceFee, totalPrice — Int (копейки/центы).
+        Display: formatPrice(cents) → "3 500 ₽". Calculation in integers to avoid float errors.
+      </description>
+    </rule>
+
+    <rule id="MONEY-002" severity="error">
+      <title>Server-side price verification</title>
+      <description>
+        API MUST пересчитать totalPrice на сервере при createBooking.
+        Client-sent totalPrice — игнорировать или сверять (reject if mismatch > 0).
+      </description>
+    </rule>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- MIGRATIONS & SEED                                          -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+
+  <section id="migrations">
+    <rule id="MIG-001" severity="error">
+      <title>Descriptive migration names</title>
+      <description>prisma migrate dev --name add_review_photos. Не auto-generated без rename.</description>
+    </rule>
+
+    <rule id="MIG-002" severity="warning">
+      <title>Seed idempotency</title>
+      <description>
+        prisma/seed.ts MUST быть идемпотентным (upsert, не create-only).
+        Минимум: 3 cities, 20 listings, 5 users, 10 bookings (mixed statuses).
+      </description>
+    </rule>
+
+    <rule id="MIG-003" severity="error">
+      <title>No breaking changes without migration path</title>
+      <description>
+        Rename column → @map или multi-step migration (add new, migrate data, drop old).
+        Не менять enum values без data migration.
+      </description>
+    </rule>
+
+    <rule id="MIG-004" severity="warning">
+      <title>Module ownership of models</title>
+      <description>
+        Изменение schema модели — PR от owner-модуля (см. semantic_graph.xml).
+        Cross-model relation changes — согласование в Phase 0/2, PR с reviewers от обоих модулей.
+      </description>
+    </rule>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- DATA ACCESS BY MODULE                                      -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+
+  <section id="access">
+    <rule id="ACC-001" severity="warning">
+      <title>Repository pattern per module</title>
+      <description>
+        Каждый модуль имеет {module}.repository.ts с typed query functions.
+        Route handlers вызывают repository, не inline prisma calls.
+        Пример: searchListings(params), getListingById(id), createBooking(input).
+      </description>
+    </rule>
+
+    <rule id="ACC-002" severity="error">
+      <title>Auth-scoped queries</title>
+      <description>
+        getUserTrips(userId), getUserFavorites(userId) — MUST filter by authenticated userId.
+        Никогда не принимать userId из client body без session verification.
+      </description>
+    </rule>
+  </section>
+
+</database_rules>

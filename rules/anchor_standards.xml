@@ -1,0 +1,381 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<anchor_standards project="TripVibe" version="1.0">
+
+  <meta>
+    <purpose>
+      Anchor standards — якорные точки проекта: именование, константы, контракты URL/API,
+      точки интеграции между модулями. LLM MUST использовать эти anchors как immutable reference
+      при работе в любом модуле, чтобы код 5 разработчиков стыковался без конфликтов.
+    </purpose>
+  </meta>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- ROUTE ANCHORS                                              -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+
+  <section id="routes">
+    <description>Канонические пути приложения. НЕ менять без обновления всех модулей и E2E tests.</description>
+
+    <route path="/" method="GET" owner="search" name="HOME"/>
+    <route path="/search" method="GET" owner="search" name="SEARCH_RESULTS"/>
+    <route path="/listings/[id]" method="GET" owner="listing" name="LISTING_DETAIL"/>
+    <route path="/checkout/[listingId]" method="GET" owner="booking" name="CHECKOUT"/>
+    <route path="/profile" method="GET" owner="profile" name="PROFILE_ROOT"/>
+    <route path="/profile/trips" method="GET" owner="profile" name="PROFILE_TRIPS"/>
+    <route path="/profile/favorites" method="GET" owner="profile" name="PROFILE_FAVORITES"/>
+    <route path="/profile/trips/[bookingId]/review" method="GET" owner="reviews" name="REVIEW_FORM"/>
+    <route path="/login" method="GET" owner="shared" name="LOGIN"/>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- API ANCHORS                                                -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+
+  <section id="api_endpoints">
+    <endpoint path="GET /api/locations/autocomplete" owner="search">
+      <query>q: string (min 2 chars)</query>
+      <response>{ data: Location[] }</response>
+    </endpoint>
+
+    <endpoint path="GET /api/listings/search" owner="search">
+      <query>SearchParams (see url_contract below)</query>
+      <response>{ data: ListingPreview[], meta: { total, page, hasMore } }</response>
+    </endpoint>
+
+    <endpoint path="GET /api/listings/[id]" owner="listing">
+      <response>{ data: ListingDetail }</response>
+    </endpoint>
+
+    <endpoint path="GET /api/listings/[id]/availability" owner="listing">
+      <query>month?: YYYY-MM</query>
+      <response>{ data: { date: string, status: 'free'|'booked'|'past' }[] }</response>
+    </endpoint>
+
+    <endpoint path="POST /api/listings/[id]/concierge" owner="listing">
+      <body>{ message: string }</body>
+      <response>Streaming text (Vercel AI SDK)</response>
+      <auth>optional (rate limit by IP if unauthenticated)</auth>
+    </endpoint>
+
+    <endpoint path="POST /api/bookings" owner="booking">
+      <body>{ listingId, checkIn, checkOut, guests }</body>
+      <response>{ data: Booking }</response>
+      <auth>required</auth>
+    </endpoint>
+
+    <endpoint path="POST /api/bookings/mock-pay" owner="booking">
+      <body>{ bookingId }</body>
+      <response>{ data: { bookingId, status: 'confirmed' } }</response>
+      <auth>required</auth>
+    </endpoint>
+
+    <endpoint path="GET /api/profile/trips" owner="profile">
+      <query>status?: upcoming|history</query>
+      <response>{ data: Trip[] }</response>
+      <auth>required</auth>
+    </endpoint>
+
+    <endpoint path="GET /api/profile/favorites" owner="profile">
+      <response>{ data: ListingPreview[] }</response>
+      <auth>required</auth>
+    </endpoint>
+
+    <endpoint path="POST /api/favorites" owner="profile">
+      <body>{ listingId: string }</body>
+      <response>{ data: Favorite }</response>
+      <auth>required</auth>
+    </endpoint>
+
+    <endpoint path="DELETE /api/favorites/[listingId]" owner="profile">
+      <response>{ data: { success: true } }</response>
+      <auth>required</auth>
+    </endpoint>
+
+    <endpoint path="POST /api/reviews" owner="reviews">
+      <body>{ bookingId, rating: 1-5, text, photos?: string[] }</body>
+      <response>{ data: Review }</response>
+      <auth>required</auth>
+    </endpoint>
+
+    <endpoint path="GET /api/listings/[id]/reviews" owner="reviews">
+      <query>page?: number</query>
+      <response>{ data: Review[], meta: { total, page } }</response>
+    </endpoint>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- URL PARAMETER CONTRACT                                     -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+
+  <section id="url_contract">
+    <description>
+      Единый контракт URL-параметров. Owner: shared/.
+      Файлы-якоря: src/shared/schemas/searchParams.ts, src/shared/utils/parseSearchParams.ts, src/shared/utils/buildSearchUrl.ts
+    </description>
+
+    <param name="city" type="string" required="false" example="Сочи"/>
+    <param name="country" type="string" required="false" example="Россия"/>
+    <param name="checkIn" type="ISO date" required="false" example="2026-07-01"/>
+    <param name="checkOut" type="ISO date" required="false" example="2026-07-08"/>
+    <param name="guests" type="integer" required="false" default="2" min="1" max="16"/>
+    <param name="priceMin" type="integer" required="false" min="0" unit="minor (kopeks)"/>
+    <param name="priceMax" type="integer" required="false" min="0" unit="minor (kopeks)"/>
+    <param name="propertyType" type="enum" required="false" values="apartment,house,room"/>
+    <param name="amenities" type="csv" required="false" values="wifi,kitchen,parking" example="wifi,kitchen"/>
+    <param name="page" type="integer" required="false" default="1"/>
+
+    <example_url>/search?city=Сочи&amp;checkIn=2026-07-01&amp;checkOut=2026-07-08&amp;guests=2&amp;priceMax=500000&amp;propertyType=apartment&amp;amenities=wifi,kitchen</example_url>
+
+    <rule id="URL-001">Omit empty/default params from URL (clean URLs)</rule>
+    <rule id="URL-002">Dates always ISO 8601 date-only (YYYY-MM-DD)</rule>
+    <rule id="URL-003">Amenities sorted alphabetically in URL for consistency</rule>
+    <rule id="URL-004">All modules MUST import parse/build from shared — never duplicate logic</rule>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- TYPE ANCHORS                                               -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+
+  <section id="types">
+    <description>Канонические TypeScript types. Owner: shared/types/. Modules extend, not redefine.</description>
+
+    <type name="ListingPreview" owner="shared" file="src/shared/types/listing.ts">
+      <field name="id" type="string"/>
+      <field name="title" type="string"/>
+      <field name="city" type="string"/>
+      <field name="country" type="string"/>
+      <field name="pricePerNight" type="number" note="minor units"/>
+      <field name="images" type="string[]" note="first image used for card"/>
+      <field name="averageRating" type="number"/>
+      <field name="reviewCount" type="number"/>
+      <field name="propertyType" type="PropertyType"/>
+    </type>
+
+    <type name="ListingDetail" owner="listing" extends="ListingPreview" file="src/modules/listing/types.ts">
+      <field name="description" type="string"/>
+      <field name="amenities" type="string[]"/>
+      <field name="lat" type="number"/>
+      <field name="lng" type="number"/>
+      <field name="cleaningFee" type="number"/>
+      <field name="serviceFee" type="number"/>
+      <field name="host" type="{ id, name, avatarUrl? }"/>
+    </type>
+
+    <type name="SearchParams" owner="shared" file="src/shared/schemas/searchParams.ts">
+      <note>Zod schema + z.infer. Single source of truth.</note>
+    </type>
+
+    <type name="PriceBreakdown" owner="booking" file="src/modules/booking/types.ts">
+      <field name="nights" type="number"/>
+      <field name="subtotal" type="number"/>
+      <field name="cleaningFee" type="number"/>
+      <field name="serviceFee" type="number"/>
+      <field name="total" type="number"/>
+    </type>
+
+    <type name="Trip" owner="profile" file="src/modules/profile/types.ts">
+      <field name="booking" type="Booking"/>
+      <field name="listing" type="ListingPreview"/>
+      <field name="canReview" type="boolean"/>
+    </type>
+
+    <type name="Review" owner="reviews" file="src/modules/reviews/types.ts">
+      <field name="id" type="string"/>
+      <field name="rating" type="number" range="1-5"/>
+      <field name="text" type="string"/>
+      <field name="photos" type="string[]"/>
+      <field name="author" type="{ name: string, avatarUrl? }"/>
+      <field name="createdAt" type="string"/>
+    </type>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- COMPONENT ANCHORS (cross-module exports)                   -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+
+  <section id="component_exports">
+    <description>Компоненты, экспортируемые одним модулем и импортируемые другими. Interface MUST be stable.</description>
+
+    <export module="profile" name="FavoriteButton">
+      <props>
+        listingId: string (required)
+        initialFavorited?: boolean (default false)
+        size?: 'sm' | 'md' (default 'md')
+        className?: string
+      </props>
+      <consumers>search (ListingCard), listing (detail page)</consumers>
+    </export>
+
+    <export module="listing" name="AvailabilityCalendar">
+      <props>
+        listingId: string (required)
+        selectedCheckIn?: Date
+        selectedCheckOut?: Date
+        onDateSelect?: (checkIn: Date, checkOut: Date) => void
+        mode?: 'view' | 'select' (default 'view')
+      </props>
+      <consumers>listing (detail page), booking (checkout)</consumers>
+    </export>
+
+    <export module="booking" name="PriceBreakdown">
+      <props>
+        breakdown: PriceBreakdown (required)
+        listingTitle?: string
+      </props>
+      <consumers>booking (checkout page), listing (sidebar preview, optional)</consumers>
+    </export>
+
+    <export module="reviews" name="StarRating">
+      <props>
+        value: number (0-5)
+        onChange?: (rating: number) => void
+        readonly?: boolean (default false)
+        size?: 'sm' | 'md' | 'lg'
+      </props>
+      <consumers>reviews (ReviewForm), listing (RatingBadge), search (ListingCard)</consumers>
+    </export>
+
+    <export module="reviews" name="ReviewList">
+      <props>
+        listingId: string (required)
+        limit?: number (default 5)
+      </props>
+      <consumers>listing (detail page)</consumers>
+    </export>
+
+    <export module="reviews" name="RatingBadge">
+      <props>
+        averageRating: number
+        reviewCount: number
+      </props>
+      <consumers>search (ListingCard), listing (header)</consumers>
+    </export>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- CONSTANT ANCHORS                                           -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+
+  <section id="constants">
+    <file path="src/shared/constants/amenities.ts">
+      <constant name="AMENITIES" value="['wifi', 'kitchen', 'parking']"/>
+      <constant name="AMENITY_LABELS" value="{ wifi: 'Wi-Fi', kitchen: 'Кухня', parking: 'Парковка' }"/>
+    </file>
+
+    <file path="src/shared/constants/propertyTypes.ts">
+      <constant name="PROPERTY_TYPES" value="['apartment', 'house', 'room']"/>
+      <constant name="PROPERTY_TYPE_LABELS" value="{ apartment: 'Квартира', house: 'Дом', room: 'Комната' }"/>
+    </file>
+
+    <file path="src/shared/constants/booking.ts">
+      <constant name="MAX_GUESTS" value="16"/>
+      <constant name="MIN_GUESTS" value="1"/>
+      <constant name="DEFAULT_GUESTS" value="2"/>
+      <constant name="SEARCH_PAGE_SIZE" value="20"/>
+    </file>
+
+    <file path="src/shared/constants/ai.ts">
+      <constant name="CONCIERGE_SYSTEM_PROMPT" note="Template with {{description}} and {{amenities}} placeholders"/>
+      <constant name="CONCIERGE_MAX_TOKENS" value="500"/>
+      <constant name="CONCIERGE_SUGGESTED_QUESTIONS" value="['Есть Wi-Fi?', 'Есть кухня?', 'Как далеко до центра?', 'Есть парковка?']"/>
+    </file>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- UTILITY FUNCTION ANCHORS                                   -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+
+  <section id="utils">
+    <function name="parseSearchParams" owner="shared" path="src/shared/utils/parseSearchParams.ts">
+      <signature>(raw: Record&lt;string, string | string[] | undefined&gt;) =&gt; SearchParams</signature>
+      <used_by>search, listing, booking</used_by>
+    </function>
+
+    <function name="buildSearchUrl" owner="shared" path="src/shared/utils/buildSearchUrl.ts">
+      <signature>(params: Partial&lt;SearchParams&gt;, basePath?: string) =&gt; string</signature>
+      <used_by>search, listing, booking</used_by>
+    </function>
+
+    <function name="calculateTotalPrice" owner="booking" path="src/modules/booking/utils/calculateTotalPrice.ts">
+      <signature>(listing: Pick&lt;ListingDetail, 'pricePerNight' | 'cleaningFee' | 'serviceFee'&gt;, checkIn: Date, checkOut: Date) =&gt; PriceBreakdown</signature>
+      <used_by>booking (checkout, API)</used_by>
+      <rule>SINGLE SOURCE OF TRUTH for pricing</rule>
+    </function>
+
+    <function name="formatPrice" owner="shared" path="src/shared/utils/formatPrice.ts">
+      <signature>(amountMinor: number, currency?: string) =&gt; string</signature>
+      <example>formatPrice(350000) → "3 500 ₽"</example>
+      <used_by>all modules displaying prices</used_by>
+    </function>
+
+    <function name="calculateAverageRating" owner="reviews" path="src/modules/reviews/utils/calculateAverageRating.ts">
+      <signature>(ratings: number[]) =&gt; number</signature>
+      <used_by>reviews (on create/delete)</used_by>
+    </function>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- NAMING CONVENTIONS                                         -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+
+  <section id="naming">
+    <rule id="NAME-001">React components: PascalCase (SearchBar, FavoriteButton)</rule>
+    <rule id="NAME-002">Hooks: camelCase with use prefix (useSearchFilters, useFavorites)</rule>
+    <rule id="NAME-003">API route folders: kebab-case (app/api/listings/[id]/concierge/route.ts)</rule>
+    <rule id="NAME-004">Database models: PascalCase singular (Listing, not Listings)</rule>
+    <rule id="NAME-005">Enum values: SCREAMING_SNAKE in Prisma, lowercase in URL/JSON (APARTMENT → apartment)</rule>
+    <rule id="NAME-006">Event handlers: handle prefix (handleSearch, handleFavoriteToggle)</rule>
+    <rule id="NAME-007">Test IDs: kebab-case (data-testid="search-submit", data-testid="favorite-toggle")</rule>
+    <rule id="NAME-008">CSS: no custom class names; Tailwind utilities only (exception: globals.css for base styles)</rule>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- INTEGRATION CHECKLIST ANCHORS                              -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+
+  <section id="integration_checkpoints">
+    <checkpoint phase="0" name="Foundation ready">
+      <item>shared/types, shared/schemas/searchParams.ts exist and tested</item>
+      <item>Prisma schema with all models migrated and seeded</item>
+      <item>Auth working, env.ts validating</item>
+    </checkpoint>
+
+    <checkpoint phase="1" name="Module isolation complete">
+      <item>Each module index.ts exports documented components/types/utils</item>
+      <item>No direct cross-module internal imports</item>
+    </checkpoint>
+
+    <checkpoint phase="2" name="Full integration">
+      <item>FavoriteButton on search cards and listing page</item>
+      <item>AvailabilityCalendar on listing and checkout</item>
+      <item>RatingBadge on search cards and listing header</item>
+      <item>URL params flow home → search → listing → checkout</item>
+      <item>Booking appears in profile after mock-pay</item>
+      <item>Review on completed trip updates listing rating</item>
+    </checkpoint>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- LLM INSTRUCTION ANCHOR                                     -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+
+  <section id="llm_instructions">
+    <instruction priority="critical">
+      Before generating code in any module, READ: project_context.md, semantic_graph.xml (your module section),
+      and relevant anchors from this file (routes, url_contract, types, component_exports).
+    </instruction>
+    <instruction priority="critical">
+      NEVER invent new URL params, API endpoints, or type shapes. If needed — propose addition to shared/ anchors first.
+    </instruction>
+    <instruction priority="high">
+      When importing cross-module, use ONLY exports listed in component_exports and semantic_graph.xml exports.
+    </instruction>
+    <instruction priority="high">
+      All prices in code: minor units (integers). Display via formatPrice() only.
+    </instruction>
+    <instruction priority="medium">
+      UI strings in Russian. Code/comments/technical logs in English.
+    </instruction>
+  </section>
+
+</anchor_standards>

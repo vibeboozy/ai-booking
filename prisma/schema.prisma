@@ -1,0 +1,145 @@
+// ANCHOR: shared
+// PURPOSE: Единственный источник правды схемы БД TripVibe (Prisma).
+// Dependencies: PostgreSQL 16.
+// CRITICAL: Изменения полей — PR от owner-модуля (см. data_models.md).
+//
+// DO:
+// - id: String @id @default(cuid()) на всех моделях
+// - Цены в копейках (Int)
+// DONT:
+// - Auto-increment integer PK
+// - Raw SQL без документирования
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum PropertyType {
+  APARTMENT
+  HOUSE
+  ROOM
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+}
+
+enum LocationType {
+  CITY
+  COUNTRY
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String
+  avatarUrl    String?
+  passwordHash String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  listings  Listing[]
+  bookings  Booking[]
+  favorites Favorite[]
+  reviews   Review[]
+}
+
+model Listing {
+  id             String       @id @default(cuid())
+  title          String
+  description    String       @db.Text
+  city           String
+  country        String
+  lat            Float
+  lng            Float
+  pricePerNight  Int
+  cleaningFee    Int
+  serviceFee     Int
+  propertyType   PropertyType
+  amenities      String[]
+  images         String[]
+  hostId         String
+  averageRating  Float        @default(0)
+  reviewCount    Int          @default(0)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  host      User       @relation(fields: [hostId], references: [id])
+  bookings  Booking[]
+  favorites Favorite[]
+  reviews   Review[]
+
+  @@index([city, country])
+  @@index([propertyType])
+  @@index([pricePerNight])
+  @@index([averageRating])
+}
+
+model Booking {
+  id         String        @id @default(cuid())
+  userId     String
+  listingId  String
+  checkIn    DateTime      @db.Date
+  checkOut   DateTime      @db.Date
+  guests     Int
+  totalPrice Int
+  status     BookingStatus @default(PENDING)
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+
+  user    User     @relation(fields: [userId], references: [id])
+  listing Listing  @relation(fields: [listingId], references: [id])
+  review  Review?
+
+  @@index([userId, status])
+  @@index([listingId, checkIn, checkOut])
+}
+
+model Favorite {
+  id        String   @id @default(cuid())
+  userId    String
+  listingId String
+  createdAt DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id])
+  listing Listing @relation(fields: [listingId], references: [id])
+
+  @@unique([userId, listingId])
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  userId    String
+  listingId String
+  bookingId String   @unique
+  rating    Int
+  text      String   @db.Text
+  photos    String[]
+  createdAt DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id])
+  listing Listing @relation(fields: [listingId], references: [id])
+  booking Booking @relation(fields: [bookingId], references: [id])
+
+  @@index([listingId])
+  @@index([userId])
+}
+
+model Location {
+  id   String       @id @default(cuid())
+  name String
+  type LocationType
+  slug String       @unique
+  lat  Float?
+  lng  Float?
+
+  @@index([name])
+}

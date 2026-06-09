@@ -1,0 +1,350 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<semantic_graph project="TripVibe" version="1.0">
+
+  <description>
+    Граф модулей TripVibe: сущности, границы ответственности и связи между ними.
+    Используй этот файл для понимания, где живёт логика и как модули взаимодействуют.
+  </description>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- CORE ENTITIES                                              -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+
+  <entities>
+
+    <entity id="User" owner="shared">
+      <fields>id, email, name, avatarUrl, createdAt</fields>
+      <relations>
+        <relation target="Booking" type="one-to-many"/>
+        <relation target="Favorite" type="one-to-many"/>
+        <relation target="Review" type="one-to-many"/>
+      </relations>
+    </entity>
+
+    <entity id="Listing" owner="listing">
+      <fields>
+        id, title, description, city, country, lat, lng,
+        pricePerNight, cleaningFee, serviceFee,
+        propertyType (apartment|house|room),
+        amenities[], images[], hostId, averageRating, reviewCount
+      </fields>
+      <relations>
+        <relation target="Booking" type="one-to-many"/>
+        <relation target="Favorite" type="one-to-many"/>
+        <relation target="Review" type="one-to-many"/>
+        <relation target="AvailabilityBlock" type="one-to-many"/>
+      </relations>
+    </entity>
+
+    <entity id="Booking" owner="booking">
+      <fields>
+        id, userId, listingId, checkIn, checkOut, guests,
+        totalPrice, status (pending|confirmed|completed|cancelled),
+        createdAt
+      </fields>
+      <relations>
+        <relation target="User" type="many-to-one"/>
+        <relation target="Listing" type="many-to-one"/>
+        <relation target="Review" type="one-to-one" optional="true"/>
+      </relations>
+    </entity>
+
+    <entity id="Favorite" owner="profile">
+      <fields>id, userId, listingId, createdAt</fields>
+      <relations>
+        <relation target="User" type="many-to-one"/>
+        <relation target="Listing" type="many-to-one"/>
+      </relations>
+    </entity>
+
+    <entity id="Review" owner="reviews">
+      <fields>
+        id, userId, listingId, bookingId,
+        rating (1-5), text, photos[], createdAt
+      </fields>
+      <relations>
+        <relation target="User" type="many-to-one"/>
+        <relation target="Listing" type="many-to-one"/>
+        <relation target="Booking" type="one-to-one"/>
+      </relations>
+    </entity>
+
+    <entity id="Location" owner="search">
+      <fields>id, name, type (city|country), slug, lat, lng</fields>
+      <note>Используется для автокомплита поиска</note>
+    </entity>
+
+  </entities>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- MODULES                                                    -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+
+  <modules>
+
+    <module id="search" owner="Dev A" path="src/modules/search">
+      <responsibility>
+        Умный поиск с автодополнением городов/стран.
+        Страница результатов с фильтрами: цена, тип жилья, удобства.
+        Синхронизация состояния с URL-параметрами.
+      </responsibility>
+      <owns>
+        <route>/</route>
+        <route>/search</route>
+        <component>SearchBar</component>
+        <component>LocationAutocomplete</component>
+        <component>SearchFilters</component>
+        <component>ListingCard (preview)</component>
+        <api>GET /api/locations/autocomplete</api>
+        <api>GET /api/listings/search</api>
+      </owns>
+      <exports>
+        <type>SearchParams</type>
+        <type>ListingPreview</type>
+        <hook>useSearchFilters</hook>
+        <util>parseSearchParams</util>
+        <util>buildSearchUrl</util>
+      </exports>
+      <depends_on>
+        <module ref="shared">ListingPreview type, UI components</module>
+      </depends_on>
+      <consumers>
+        <module ref="listing">ListingCard links to /listings/[id]</module>
+        <module ref="profile">FavoriteButton on ListingCard</module>
+      </consumers>
+    </module>
+
+    <module id="listing" owner="Dev B" path="src/modules/listing">
+      <responsibility>
+        Страница объекта: галерея фото, карта с меткой, описание,
+        календарь доступности (свободные/занятые даты), ИИ-Консьерж.
+      </responsibility>
+      <owns>
+        <route>/listings/[id]</route>
+        <component>ImageGallery</component>
+        <component>ListingMap</component>
+        <component>AvailabilityCalendar</component>
+        <component>AIConcierge</component>
+        <component>ListingDetails</component>
+        <api>GET /api/listings/[id]</api>
+        <api>GET /api/listings/[id]/availability</api>
+        <api>POST /api/listings/[id]/concierge</api>
+      </owns>
+      <exports>
+        <type>ListingDetail</type>
+        <type>AvailabilityDay</type>
+        <hook>useAvailability</hook>
+        <component>AvailabilityCalendar</component>
+      </exports>
+      <depends_on>
+        <module ref="search">SearchParams for pre-filled dates</module>
+        <module ref="booking">AvailabilityCalendar shared on checkout</module>
+        <module ref="profile">FavoriteButton</module>
+        <module ref="reviews">ReviewList, averageRating display</module>
+      </depends_on>
+      <consumers>
+        <module ref="booking">ListingDetail, AvailabilityCalendar, price fields</module>
+      </consumers>
+    </module>
+
+    <module id="booking" owner="Dev C" path="src/modules/booking">
+      <responsibility>
+        Процесс бронирования: выбор дат, расчёт полной цены (без скрытых сборов),
+        mock-оплата, создание записи Booking.
+      </responsibility>
+      <owns>
+        <route>/checkout/[listingId]</route>
+        <component>CheckoutForm</component>
+        <component>PriceBreakdown</component>
+        <component>MockPaymentButton</component>
+        <api>POST /api/bookings</api>
+        <api>POST /api/bookings/mock-pay</api>
+        <action>createBooking</action>
+        <action>calculatePrice</action>
+      </owns>
+      <exports>
+        <type>BookingCreateInput</type>
+        <type>PriceBreakdown</type>
+        <util>calculateTotalPrice</util>
+        <hook>useCheckout</hook>
+      </exports>
+      <depends_on>
+        <module ref="listing">ListingDetail, AvailabilityCalendar, fees</module>
+        <module ref="shared">auth session (userId)</module>
+      </depends_on>
+      <consumers>
+        <module ref="profile">Booking records appear in trips list</module>
+      </consumers>
+    </module>
+
+    <module id="profile" owner="Dev D" path="src/modules/profile">
+      <responsibility>
+        Личный кабинет: будущие трипы, история поездок, избранное (сердечки).
+      </responsibility>
+      <owns>
+        <route>/profile</route>
+        <route>/profile/trips</route>
+        <route>/profile/favorites</route>
+        <component>FavoriteButton</component>
+        <component>TripsList</component>
+        <component>FavoritesList</component>
+        <api>GET /api/profile/trips</api>
+        <api>GET /api/profile/favorites</api>
+        <api>POST /api/favorites</api>
+        <api>DELETE /api/favorites/[listingId]</api>
+      </owns>
+      <exports>
+        <type>Trip</type>
+        <type>Favorite</type>
+        <component>FavoriteButton</component>
+        <hook>useFavorites</hook>
+        <hook>useTrips</hook>
+      </exports>
+      <depends_on>
+        <module ref="booking">Booking entity for trips</module>
+        <module ref="listing">ListingPreview for cards</module>
+        <module ref="reviews">Link to leave review after completed trip</module>
+      </depends_on>
+      <consumers>
+        <module ref="search">FavoriteButton on ListingCard</module>
+        <module ref="listing">FavoriteButton on detail page</module>
+      </consumers>
+    </module>
+
+    <module id="reviews" owner="Dev E" path="src/modules/reviews">
+      <responsibility>
+        Система отзывов: форма со звёздами и текстом (фото опционально),
+        агрегация среднего рейтинга, отображение на странице объекта.
+      </responsibility>
+      <owns>
+        <route>/profile/trips/[bookingId]/review</route>
+        <component>ReviewForm</component>
+        <component>StarRating</component>
+        <component>ReviewList</component>
+        <component>RatingBadge</component>
+        <api>POST /api/reviews</api>
+        <api>GET /api/listings/[id]/reviews</api>
+        <action>submitReview</action>
+        <action>aggregateRating</action>
+      </owns>
+      <exports>
+        <type>Review</type>
+        <type>ReviewInput</type>
+        <component>StarRating</component>
+        <component>ReviewList</component>
+        <component>RatingBadge</component>
+        <util>calculateAverageRating</util>
+      </exports>
+      <depends_on>
+        <module ref="booking">Booking.status === completed required</module>
+        <module ref="profile">Entry point from trips history</module>
+      </depends_on>
+      <consumers>
+        <module ref="listing">ReviewList, RatingBadge on detail page</module>
+        <module ref="search">averageRating on ListingCard</module>
+      </consumers>
+    </module>
+
+    <module id="shared" owner="all" path="src/shared">
+      <responsibility>
+        Общие типы, UI-примитивы (shadcn), утилиты, константы, Zod-схемы.
+        Prisma client, auth helpers, AI client config.
+      </responsibility>
+      <owns>
+        <path>src/shared/types/</path>
+        <path>src/shared/ui/</path>
+        <path>src/shared/lib/</path>
+        <path>src/lib/prisma.ts</path>
+        <path>src/lib/auth.ts</path>
+        <path>src/lib/ai.ts</path>
+      </owns>
+      <rule>Модули импортируют только из shared/ и своих exports других модулей</rule>
+    </module>
+
+  </modules>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- USER FLOWS                                                 -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+
+  <flows>
+
+    <flow id="search-to-book" name="Основной флоу бронирования">
+      <step module="search">Главная → ввод города, дат, гостей → «Найти»</step>
+      <step module="search">/search?city=...&amp;checkIn=...&amp;filters → фильтрация</step>
+      <step module="listing">Клик на карточку → /listings/[id]</step>
+      <step module="listing">Просмотр галереи, карты, календаря, ИИ-Консьержа</step>
+      <step module="booking">«Забронировать» → /checkout/[listingId]</step>
+      <step module="booking">PriceBreakdown → MockPayment → Booking created</step>
+      <step module="profile">Редирект → /profile/trips (новый трип)</step>
+    </flow>
+
+    <flow id="favorite" name="Избранное">
+      <step module="search|listing">Клик на сердечко (FavoriteButton)</step>
+      <step module="profile">POST /api/favorites → сохранение</step>
+      <step module="profile">/profile/favorites → список сохранённых</step>
+    </flow>
+
+    <flow id="review" name="Отзыв после поездки">
+      <step module="profile">/profile/trips → completed booking → «Оставить отзыв»</step>
+      <step module="reviews">ReviewForm (stars + text) → POST /api/reviews</step>
+      <step module="reviews">aggregateRating → обновление Listing.averageRating</step>
+      <step module="listing">ReviewList на странице объекта обновлён</step>
+    </flow>
+
+    <flow id="ai-concierge" name="ИИ-Консьерж">
+      <step module="listing">User question in AIConcierge widget</step>
+      <step module="listing">POST /api/listings/[id]/concierge</step>
+      <step module="shared">Vercel AI SDK stream with listing context prompt</step>
+      <step module="listing">Streaming response in widget</step>
+    </flow>
+
+  </flows>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- INTEGRATION CONTRACTS                                      -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+
+  <contracts>
+
+    <contract id="search-params" between="search,listing,booking">
+      <schema>
+        city: string
+        checkIn: ISO date string
+        checkOut: ISO date string
+        guests: number (1-16)
+        priceMin?: number
+        priceMax?: number
+        propertyType?: apartment|house|room
+        amenities?: comma-separated (wifi,kitchen,parking)
+      </schema>
+      <rule>Все модули парсят/генерируют URL через shared util parseSearchParams / buildSearchUrl</rule>
+    </contract>
+
+    <contract id="listing-preview" between="search,profile,listing">
+      <schema>
+        id, title, city, country, pricePerNight, averageRating,
+        reviewCount, images[0], propertyType
+      </schema>
+      <rule>Минимальный набор для карточек в результатах, избранном, профиле</rule>
+    </contract>
+
+    <contract id="price-breakdown" between="listing,booking">
+      <schema>
+        nights: number
+        subtotal: number (pricePerNight * nights)
+        cleaningFee: number
+        serviceFee: number
+        total: number
+      </schema>
+      <rule>calculateTotalPrice — единственный источник расчёта. UI показывает все строки явно.</rule>
+    </contract>
+
+    <contract id="favorite-button" between="profile,search,listing">
+      <props>listingId: string, initialFavorited?: boolean</props>
+      <rule>Dev D экспортирует FavoriteButton; Dev A и Dev B только импортируют</rule>
+    </contract>
+
+  </contracts>
+
+</semantic_graph>
