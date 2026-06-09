@@ -1,0 +1,387 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dev_plan project="TripVibe" version="1.0">
+
+  <description>
+    Поэтапный план разработки TripVibe для команды из 5 разработчиков.
+    Каждый этап завершается интеграционной точкой — работающим сквозным сценарием.
+  </description>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- PHASE 0: FOUNDATION (вся команда, 2-3 дня)               -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+
+  <phase id="0" name="Foundation" duration="2-3 days" blocking="true">
+    <goal>Общий каркас проекта, на котором параллельно строят все модули</goal>
+
+    <tasks owner="all">
+      <task id="0.1" priority="critical">
+        <title>Init Next.js project</title>
+        <details>
+          Next.js 15 App Router, TypeScript strict, Tailwind, shadcn/ui, ESLint, Prettier.
+          Структура директорий согласно project_context.md.
+        </details>
+        <acceptance>pnpm dev запускается без ошибок</acceptance>
+      </task>
+
+      <task id="0.2" priority="critical">
+        <title>Database schema (Prisma)</title>
+        <details>
+          Модели: User, Listing, Booking, Favorite, Review, Location, AvailabilityBlock.
+          Seed-скрипт с 20+ listings в 3 городах.
+        </details>
+        <acceptance>pnpm db:seed создаёт тестовые данные</acceptance>
+      </task>
+
+      <task id="0.3" priority="critical">
+        <title>Auth setup (NextAuth.js)</title>
+        <details>
+          Email/password + Google OAuth. Middleware для защиты /profile, /checkout.
+          Mock user для dev без OAuth.
+        </details>
+        <acceptance>Login/logout работает, session доступна в Server Components</acceptance>
+      </task>
+
+      <task id="0.4" priority="high">
+        <title>Shared types and URL utils</title>
+        <details>
+          SearchParams Zod schema, parseSearchParams, buildSearchUrl.
+          ListingPreview, ListingDetail base types.
+        </details>
+        <acceptance>Unit-тесты на parse/build roundtrip</acceptance>
+      </task>
+
+      <task id="0.5" priority="high">
+        <title>Layout and design tokens</title>
+        <details>
+          Root layout, header (logo, nav, auth), footer.
+          Tailwind theme: цвета TripVibe, typography scale.
+        </details>
+        <acceptance>Единый visual language на всех страницах-заглушках</acceptance>
+      </task>
+    </tasks>
+
+    <integration_checkpoint>
+      Все 5 dev-ов могут начать работу в своих modules/ директориях.
+      Seed data доступна. Auth работает.
+    </integration_checkpoint>
+  </phase>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- PHASE 1: PARALLEL MODULE DEVELOPMENT (5-7 дней)           -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+
+  <phase id="1" name="Parallel Module Development" duration="5-7 days" blocking="false">
+    <goal>Каждый разработчик реализует свой модуль независимо на mock/shared data</goal>
+
+    <!-- Dev A -->
+    <tasks owner="Dev A" module="search">
+      <task id="1.A.1" priority="critical">
+        <title>SearchBar on homepage</title>
+        <details>
+          LocationAutocomplete (debounced fetch /api/locations/autocomplete),
+          date pickers (checkIn/checkOut), guests selector, «Найти» button.
+          Submit → navigate to /search with URL params.
+        </details>
+      </task>
+      <task id="1.A.2" priority="critical">
+        <title>Search results page</title>
+        <details>
+          GET /api/listings/search with query params.
+          Grid of ListingCard components. Empty state, loading skeleton.
+        </details>
+      </task>
+      <task id="1.A.3" priority="high">
+        <title>Filters panel</title>
+        <details>
+          Price slider (min/max), property type toggle buttons (apartment/house/room),
+          amenities checkboxes (Wi-Fi, kitchen, parking).
+          All sync to URL via nuqs/useSearchParams. Debounce 300ms.
+        </details>
+      </task>
+      <task id="1.A.4" priority="medium">
+        <title>Responsive and a11y</title>
+        <details>Mobile filter drawer, keyboard nav for autocomplete, ARIA labels.</details>
+      </task>
+    </tasks>
+
+    <!-- Dev B -->
+    <tasks owner="Dev B" module="listing">
+      <task id="1.B.1" priority="critical">
+        <title>Listing detail page</title>
+        <details>
+          /listings/[id] — title, description, amenities list, host info, price.
+          Pre-fill dates from URL search params.
+        </details>
+      </task>
+      <task id="1.B.2" priority="critical">
+        <title>ImageGallery</title>
+        <details>
+          Full-width hero + thumbnail strip. Lightbox/modal for swipe/arrow navigation.
+          Lazy loading, blur placeholder.
+        </details>
+      </task>
+      <task id="1.B.3" priority="high">
+        <title>ListingMap</title>
+        <details>Mapbox map centered on listing lat/lng, single marker, responsive height.</details>
+      </task>
+      <task id="1.B.4" priority="high">
+        <title>AvailabilityCalendar</title>
+        <details>
+          Fetch /api/listings/[id]/availability.
+          Visual: green=free, red=booked, gray=past.
+          Export component for reuse in checkout (Module 3).
+        </details>
+      </task>
+      <task id="1.B.5" priority="high">
+        <title>AI Concierge widget</title>
+        <details>
+          Chat UI on listing page. POST /api/listings/[id]/concierge.
+          Vercel AI SDK streamText with system prompt containing description + amenities.
+          Bot MUST NOT hallucinate — answer only from provided context.
+        </details>
+      </task>
+    </tasks>
+
+    <!-- Dev C -->
+    <tasks owner="Dev C" module="booking">
+      <task id="1.C.1" priority="critical">
+        <title>Checkout page</title>
+        <details>
+          /checkout/[listingId] — listing summary, date selection (reuse AvailabilityCalendar),
+          guests count, PriceBreakdown component.
+        </details>
+      </task>
+      <task id="1.C.2" priority="critical">
+        <title>Price calculation</title>
+        <details>
+          calculateTotalPrice(listing, checkIn, checkOut, guests).
+          Show: N nights × price, cleaning fee, service fee, TOTAL.
+          No hidden fees — all lines visible before payment.
+        </details>
+      </task>
+      <task id="1.C.3" priority="critical">
+        <title>Mock payment and booking creation</title>
+        <details>
+          «Забронировать» → POST /api/bookings/mock-pay.
+          Simulate 1.5s delay, create Booking with status=confirmed.
+          Redirect to /profile/trips?success=true.
+        </details>
+      </task>
+      <task id="1.C.4" priority="high">
+        <title>Validation</title>
+        <details>
+          Zod schema for booking input. Check date overlap with existing bookings.
+          Auth required — redirect to login if no session.
+        </details>
+      </task>
+    </tasks>
+
+    <!-- Dev D -->
+    <tasks owner="Dev D" module="profile">
+      <task id="1.D.1" priority="critical">
+        <title>Profile layout and trips list</title>
+        <details>
+          /profile — tabs: Upcoming, History, Favorites.
+          TripsList: cards with listing image, dates, status badge, total price.
+        </details>
+      </task>
+      <task id="1.D.2" priority="critical">
+        <title>FavoriteButton component</title>
+        <details>
+          Heart icon toggle. Optimistic UI update.
+          POST/DELETE /api/favorites. Auth required.
+          Export for use in search cards and listing page.
+        </details>
+      </task>
+      <task id="1.D.3" priority="high">
+        <title>Favorites page</title>
+        <details>/profile/favorites — grid of favorited ListingPreview cards.</details>
+      </task>
+      <task id="1.D.4" priority="medium">
+        <title>Trip detail actions</title>
+        <details>
+          Upcoming: «Отменить» (status→cancelled). Completed: «Оставить отзыв» link.
+        </details>
+      </task>
+    </tasks>
+
+    <!-- Dev E -->
+    <tasks owner="Dev E" module="reviews">
+      <task id="1.E.1" priority="critical">
+        <title>ReviewForm</title>
+        <details>
+          StarRating (1-5, interactive), text area, optional photo upload.
+          Accessible from /profile/trips/[bookingId]/review.
+          Only if booking.status === completed and no existing review.
+        </details>
+      </task>
+      <task id="1.E.2" priority="critical">
+        <title>Review submission API</title>
+        <details>
+          POST /api/reviews — validate ownership, booking status, uniqueness.
+          Trigger aggregateRating update on Listing.
+        </details>
+      </task>
+      <task id="1.E.3" priority="high">
+        <title>ReviewList and RatingBadge</title>
+        <details>
+          Paginated reviews on listing page. RatingBadge (avg + count) for cards.
+          Export components for Module 1 and Module 2.
+        </details>
+      </task>
+      <task id="1.E.4" priority="medium">
+        <title>Rating aggregation</title>
+        <details>
+          calculateAverageRating on review create/delete.
+          Denormalized Listing.averageRating + reviewCount for search performance.
+        </details>
+      </task>
+    </tasks>
+
+    <integration_checkpoint>
+      Каждый модуль работает изолированно со seed data.
+      Stub-импорты между модулями заменены на реальные exports.
+    </integration_checkpoint>
+  </phase>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- PHASE 2: INTEGRATION (2-3 дня)                            -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+
+  <phase id="2" name="Integration" duration="2-3 days" blocking="true">
+    <goal>Собрать все модули в единый работающий продукт</goal>
+
+    <tasks owner="all">
+      <task id="2.1" priority="critical">
+        <title>Cross-module imports</title>
+        <details>
+          FavoriteButton → search ListingCard, listing page.
+          AvailabilityCalendar → checkout page.
+          ReviewList/RatingBadge → listing page, search cards.
+          PriceBreakdown uses listing fees.
+        </details>
+      </task>
+
+      <task id="2.2" priority="critical">
+        <title>URL state end-to-end</title>
+        <details>
+          Search params flow: home → results → listing → checkout.
+          Browser back/forward preserves state. Shareable URLs work.
+        </details>
+      </task>
+
+      <task id="2.3" priority="high">
+        <title>Auth guards</title>
+        <details>
+          /checkout, /profile, /api/favorites, /api/bookings, /api/reviews require auth.
+          Graceful redirect to login with returnUrl.
+        </details>
+      </task>
+
+      <task id="2.4" priority="high">
+        <title>Error boundaries and empty states</title>
+        <details>
+          404 for invalid listingId. Empty search results. No favorites yet.
+          Network error toasts.
+        </details>
+      </task>
+
+      <task id="2.5" priority="medium">
+        <title>Performance pass</title>
+        <details>
+          Image optimization (next/image). Search API pagination.
+          Debounced filters. React Query staleTime config.
+        </details>
+      </task>
+    </tasks>
+
+    <integration_checkpoint>
+      E2E flow works: Search → Filter → View → Book → Profile → Review.
+    </integration_checkpoint>
+  </phase>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- PHASE 3: POLISH & QA (2 дня)                              -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+
+  <phase id="3" name="Polish and QA" duration="2 days" blocking="true">
+    <goal>Production-ready quality для демо инвесторам</goal>
+
+    <tasks owner="all">
+      <task id="3.1" priority="high">
+        <title>E2E tests (Playwright)</title>
+        <details>
+          Critical paths: search flow, booking flow, favorite toggle, review submission.
+          AI concierge returns response (smoke test with mock).
+        </details>
+      </task>
+
+      <task id="3.2" priority="high">
+        <title>Mobile QA</title>
+        <details>All pages tested on 375px viewport. Filter drawer, gallery swipe, checkout.</details>
+      </task>
+
+      <task id="3.3" priority="medium">
+        <title>AI Concierge demo polish</title>
+        <details>
+          Suggested questions chips («Есть Wi-Fi?», «Как далеко до центра?»).
+          Typing indicator during stream.
+        </details>
+      </task>
+
+      <task id="3.4" priority="medium">
+        <title>SEO and metadata</title>
+        <details>generateMetadata for listing pages. Open Graph images from listing photos.</details>
+      </task>
+
+      <task id="3.5" priority="low">
+        <title>README and env example</title>
+        <details>.env.example, setup instructions, module ownership map.</details>
+      </task>
+    </tasks>
+
+    <integration_checkpoint>
+      Demo-ready: investor can walk through full product on mobile and desktop.
+    </integration_checkpoint>
+  </phase>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- DEPENDENCY GRAPH                                           -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+
+  <dependencies>
+    <dep from="1.A.*" to="0.4" note="SearchParams utils"/>
+    <dep from="1.B.4" to="0.2" note="AvailabilityBlock in schema"/>
+    <dep from="1.B.5" to="0.2" note="Listing description/amenities"/>
+    <dep from="1.C.1" to="1.B.4" note="AvailabilityCalendar export"/>
+    <dep from="1.C.2" to="0.2" note="Listing fee fields"/>
+    <dep from="1.D.2" to="0.3" note="Auth for favorites"/>
+    <dep from="1.E.1" to="1.C.3" note="Completed bookings exist"/>
+    <dep from="2.1" to="1.*" note="All modules complete"/>
+    <dep from="3.1" to="2.*" note="Integration complete"/>
+  </dependencies>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- RISK REGISTER                                              -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+
+  <risks>
+    <risk id="R1" severity="high">
+      <description>AvailabilityCalendar shared between listing and checkout — interface mismatch</description>
+      <mitigation>Define AvailabilityCalendar props contract in Phase 0.4 shared types</mitigation>
+    </risk>
+    <risk id="R2" severity="medium">
+      <description>URL param conflicts between modules</description>
+      <mitigation>Single SearchParams Zod schema owned by shared/, never extend per-module</mitigation>
+    </risk>
+    <risk id="R3" severity="medium">
+      <description>AI Concierge hallucinations</description>
+      <mitigation>Strict system prompt: answer ONLY from context; fallback «Не знаю» if not in data</mitigation>
+    </risk>
+    <risk id="R4" severity="low">
+      <description>Mapbox token missing in dev</description>
+      <mitigation>Static map image fallback when NEXT_PUBLIC_MAPBOX_TOKEN absent</mitigation>
+    </risk>
+  </risks>
+
+</dev_plan>

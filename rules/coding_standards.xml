@@ -1,0 +1,302 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<coding_standards project="TripVibe" version="1.0">
+
+  <meta>
+    <purpose>Единые стандарты кода для всех 5 модулей TripVibe. LLM MUST следовать этим правилам при генерации и рефакторинге кода.</purpose>
+    <applies_to>src/**/*.{ts,tsx}</applies_to>
+  </meta>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- LANGUAGE & TYPING                                          -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+
+  <section id="typescript">
+    <rule id="TS-001" severity="error">
+      <title>Strict TypeScript</title>
+      <description>tsconfig strict: true. Запрещены implicit any, unchecked indexed access.</description>
+      <example_good><![CDATA[
+interface ListingPreview {
+  id: string;
+  title: string;
+  pricePerNight: number;
+}
+      ]]></example_good>
+      <example_bad><![CDATA[
+const listing: any = await fetchListing(id); // ❌
+      ]]></example_bad>
+    </rule>
+
+    <rule id="TS-002" severity="error">
+      <title>Explicit return types on exported functions</title>
+      <description>Все export function, export async function и API handlers MUST иметь явный return type.</description>
+    </rule>
+
+    <rule id="TS-003" severity="warning">
+      <title>Prefer type over interface for unions/primitives</title>
+      <description>interface — для объектов с возможным расширением. type — для unions, mapped types, Zod infer.</description>
+      <example_good><![CDATA[
+type PropertyType = 'apartment' | 'house' | 'room';
+type SearchParams = z.infer<typeof searchParamsSchema>;
+      ]]></example_good>
+    </rule>
+
+    <rule id="TS-004" severity="error">
+      <title>No non-null assertion without comment</title>
+      <description>Запрещён оператор `!` без поясняющего комментария, почему значение гарантированно не null.</description>
+    </rule>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- FILE & MODULE ORGANIZATION                                 -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+
+  <section id="structure">
+    <rule id="STR-001" severity="error">
+      <title>Module colocation</title>
+      <description>
+        Код модуля живёт в src/modules/{module}/:
+        components/, hooks/, api/, types/, utils/, index.ts (public exports).
+        Внутренние файлы модуля НЕ экспортируются напрямую — только через index.ts.
+      </description>
+    </rule>
+
+    <rule id="STR-002" severity="error">
+      <title>No cross-module internal imports</title>
+      <description>
+        Модуль A импортирует из модуля B ТОЛЬКО через src/modules/B/index.ts.
+        Запрещено: import from '@/modules/booking/components/CheckoutForm'.
+        Разрешено: import { PriceBreakdown } from '@/modules/booking'.
+      </description>
+    </rule>
+
+    <rule id="STR-003" severity="warning">
+      <title>File naming</title>
+      <description>
+        Components: PascalCase.tsx (SearchBar.tsx).
+        Hooks: camelCase with use prefix (useSearchFilters.ts).
+        Utils/types: camelCase.ts (parseSearchParams.ts).
+        API routes: Next.js convention (route.ts in app/api/).
+      </description>
+    </rule>
+
+    <rule id="STR-004" severity="warning">
+      <title>One component per file</title>
+      <description>Каждый React-компонент — отдельный файл. Исключение: trivial sub-components &lt; 10 строк, не используемые elsewhere.</description>
+    </rule>
+
+    <rule id="STR-005" severity="error">
+      <title>Barrel exports discipline</title>
+      <description>
+        index.ts каждого модуля экспортирует ONLY public API (см. semantic_graph.xml exports).
+        Не экспортировать internal helpers, тестовые утилиты, mock data.
+      </description>
+    </rule>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- REACT & NEXT.JS                                            -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+
+  <section id="react">
+    <rule id="REACT-001" severity="error">
+      <title>Server Components by default</title>
+      <description>
+        Страницы и layout — Server Components. 'use client' ONLY когда нужны:
+        hooks, event handlers, browser APIs, useSearchParams, useState.
+      </description>
+    </rule>
+
+    <rule id="REACT-002" severity="error">
+      <title>Client boundary minimization</title>
+      <description>
+        Выносить 'use client' как можно ниже по дереву.
+        Оборачивать только интерактивную часть (SearchFilters), не всю страницу.
+      </description>
+      <example_good><![CDATA[
+// page.tsx (Server Component)
+export default async function SearchPage({ searchParams }) {
+  const listings = await searchListings(searchParams);
+  return (
+    <>
+      <SearchFilters /> {/* client */}
+      <ListingGrid listings={listings} /> {/* server */}
+    </>
+  );
+}
+      ]]></example_good>
+    </rule>
+
+    <rule id="REACT-003" severity="warning">
+      <title>Custom hooks for reusable logic</title>
+      <description>
+        URL sync, favorites toggle, checkout state — в custom hooks (useSearchFilters, useFavorites).
+        Компоненты остаются declarative.
+      </description>
+    </rule>
+
+    <rule id="REACT-004" severity="error">
+      <title>URL as source of truth for filters</title>
+      <description>
+        Фильтры поиска MUST синхронизироваться с URL query params.
+        useState для фильтров без URL sync — запрещён (кроме transient UI: dropdown open state).
+        Использовать nuqs или shared parseSearchParams/buildSearchUrl.
+      </description>
+    </rule>
+
+    <rule id="REACT-005" severity="warning">
+      <title>Loading and error states</title>
+      <description>
+        Каждая async page MUST иметь loading.tsx и error.tsx (или inline Suspense + ErrorBoundary).
+        Skeleton UI для списков и карточек.
+      </description>
+    </rule>
+
+    <rule id="REACT-006" severity="warning">
+      <title>Optimistic updates for favorites</title>
+      <description>
+        FavoriteButton MUST обновлять UI оптимистично, откатывать при ошибке API.
+      </description>
+    </rule>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- API & DATA                                                 -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+
+  <section id="api">
+    <rule id="API-001" severity="error">
+      <title>Zod validation on all inputs</title>
+      <description>
+        Route Handlers и Server Actions MUST валидировать input через Zod schema.
+        Return 400 с понятным message при validation error.
+      </description>
+      <example_good><![CDATA[
+const result = bookingCreateSchema.safeParse(body);
+if (!result.success) {
+  return NextResponse.json({ error: result.error.flatten() }, { status: 400 });
+}
+      ]]></example_good>
+    </rule>
+
+    <rule id="API-002" severity="error">
+      <title>Consistent API response shape</title>
+      <description>
+        Success: { data: T } или { data: T, meta: { page, total } } для paginated.
+        Error: { error: string, code?: string }.
+        HTTP status codes: 200, 201, 400, 401, 403, 404, 409, 500.
+      </description>
+    </rule>
+
+    <rule id="API-003" severity="warning">
+      <title>Server Actions for mutations</title>
+      <description>
+        createBooking, submitReview, toggleFavorite — Server Actions.
+        Route Handlers — для REST endpoints, используемых client-side fetch (autocomplete, search).
+      </description>
+    </rule>
+
+    <rule id="API-004" severity="error">
+      <title>Single price calculation source</title>
+      <description>
+        calculateTotalPrice() в modules/booking — единственное место расчёта цены.
+        UI и API MUST вызывать эту функцию, не дублировать формулы.
+      </description>
+    </rule>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- STYLING                                                    -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+
+  <section id="styling">
+    <rule id="CSS-001" severity="warning">
+      <title>Tailwind only</title>
+      <description>Не создавать .css/.scss файлы (кроме globals.css). Styling через Tailwind utility classes.</description>
+    </rule>
+
+    <rule id="CSS-002" severity="warning">
+      <title>shadcn/ui for primitives</title>
+      <description>Button, Input, Slider, Checkbox, Dialog — из src/shared/ui/ (shadcn). Не reinvent.</description>
+    </rule>
+
+    <rule id="CSS-003" severity="warning">
+      <title>Mobile-first responsive</title>
+      <description>Base styles для mobile. Breakpoints: sm(640), md(768), lg(1024). min-width approach.</description>
+    </rule>
+
+    <rule id="CSS-004" severity="info">
+      <title>cn() for conditional classes</title>
+      <description>Использовать cn() (clsx + tailwind-merge) из shared/lib для условных классов.</description>
+    </rule>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- AI CONCIERGE                                               -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+
+  <section id="ai">
+    <rule id="AI-001" severity="error">
+      <title>Context-only responses</title>
+      <description>
+        System prompt MUST включать ONLY description и amenities конкретного listing.
+        Instruction: «Отвечай только на основе предоставленных данных. Если информации нет — скажи "В описании этого жилья такой информации нет".»
+      </description>
+    </rule>
+
+    <rule id="AI-002" severity="error">
+      <title>Vercel AI SDK streaming</title>
+      <description>
+        Использовать streamText из 'ai' package. Route Handler returns streaming response.
+        Client: useChat или useCompletion из @ai-sdk/react.
+      </description>
+    </rule>
+
+    <rule id="AI-003" severity="warning">
+      <title>No user PII in AI context</title>
+      <description>В промпт НЕ передавать userId, email, booking history. Только данные объекта.</description>
+    </rule>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- ERROR HANDLING & LOGGING                                   -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+
+  <section id="errors">
+    <rule id="ERR-001" severity="error">
+      <title>No empty catch blocks</title>
+      <description>catch MUST log error и либо re-throw, либо return user-friendly error response.</description>
+    </rule>
+
+    <rule id="ERR-002" severity="warning">
+      <title>User-facing error messages in Russian</title>
+      <description>UI error messages — на русском. Technical logs — English ok.</description>
+    </rule>
+
+    <rule id="ERR-003" severity="warning">
+      <title>Never expose stack traces to client</title>
+      <description>Production API responses MUST NOT include stack traces or internal error details.</description>
+    </rule>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- GIT & PR                                                   -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+
+  <section id="git">
+    <rule id="GIT-001" severity="info">
+      <title>Branch naming</title>
+      <description>feature/{module}-{short-description} — e.g. feature/search-filters, feature/booking-checkout.</description>
+    </rule>
+
+    <rule id="GIT-002" severity="info">
+      <title>Commit messages</title>
+      <description>Conventional commits: feat(search): add price slider filter. Scope = module name.</description>
+    </rule>
+
+    <rule id="GIT-003" severity="warning">
+      <title>PR scope</title>
+      <description>One PR = one module feature or shared infrastructure. Cross-module PRs only in Phase 2 integration.</description>
+    </rule>
+  </section>
+
+</coding_standards>

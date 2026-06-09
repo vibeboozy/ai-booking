@@ -1,0 +1,315 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testing_rules project="TripVibe" version="1.0">
+
+  <meta>
+    <purpose>Стратегия и стандарты тестирования TripVibe. LLM MUST следовать при написании и генерации тестов.</purpose>
+    <stack>Vitest (unit/integration), Playwright (E2E), Testing Library (components)</stack>
+  </meta>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- TEST PYRAMID                                               -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+
+  <section id="pyramid">
+    <layer name="unit" coverage_target="80%" scope="utils, hooks, pure functions">
+      <examples>parseSearchParams, buildSearchUrl, calculateTotalPrice, calculateAverageRating, formatPrice</examples>
+    </layer>
+    <layer name="integration" coverage_target="60%" scope="API routes, repositories, Server Actions">
+      <examples>POST /api/bookings, searchListings query, submitReview with rating update</examples>
+    </layer>
+    <layer name="component" coverage_target="50%" scope="interactive UI with user events">
+      <examples>SearchFilters, FavoriteButton, StarRating, PriceBreakdown</examples>
+    </layer>
+    <layer name="e2e" coverage_target="critical paths" scope="Playwright full user flows">
+      <examples>search-to-book, favorite toggle, review submission</examples>
+    </layer>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- FILE ORGANIZATION                                          -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+
+  <section id="organization">
+    <rule id="TEST-001" severity="error">
+      <title>Colocated unit tests</title>
+      <description>
+        Unit tests рядом с source: parseSearchParams.test.ts рядом с parseSearchParams.ts.
+        Component tests: ComponentName.test.tsx рядом с ComponentName.tsx.
+      </description>
+    </rule>
+
+    <rule id="TEST-002" severity="warning">
+      <title>E2E in tests/e2e/</title>
+      <description>
+        Playwright specs: tests/e2e/search.spec.ts, booking.spec.ts, profile.spec.ts.
+        Shared fixtures: tests/e2e/fixtures/.
+      </description>
+    </rule>
+
+    <rule id="TEST-003" severity="warning">
+      <title>Integration tests in tests/integration/</title>
+      <description>
+        API route tests с test database: tests/integration/booking.api.test.ts.
+        Use separate DATABASE_URL for test (e.g. tripvibe_test).
+      </description>
+    </rule>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- UNIT TEST STANDARDS                                        -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+
+  <section id="unit">
+    <rule id="UNIT-001" severity="error">
+      <title>AAA pattern</title>
+      <description>Arrange → Act → Assert. One logical assertion group per test case.</description>
+    </rule>
+
+    <rule id="UNIT-002" severity="warning">
+      <title>Descriptive test names</title>
+      <description>
+        Format: it('should {expected behavior} when {condition}').
+        Example: it('should return empty array when city not found').
+      </description>
+    </rule>
+
+    <rule id="UNIT-003" severity="error">
+      <title>URL utils roundtrip tests</title>
+      <description>
+        MUST test: parseSearchParams(buildSearchUrl(params)) === params for all filter combinations.
+        Edge cases: empty params, invalid dates, out-of-range guests.
+      </description>
+    </rule>
+
+    <rule id="UNIT-004" severity="error">
+      <title>Price calculation tests</title>
+      <description>
+        calculateTotalPrice MUST have tests for:
+        - single night, multi-night,
+        - zero fees, with cleaning + service fees,
+        - invalid dates (checkOut ≤ checkIn) → throw/return error.
+      </description>
+    </rule>
+
+    <rule id="UNIT-005" severity="warning">
+      <title>Rating aggregation tests</title>
+      <description>
+        calculateAverageRating: empty reviews → 0, single review, multiple reviews, rounding to 1 decimal.
+      </description>
+    </rule>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- COMPONENT TEST STANDARDS                                   -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+
+  <section id="component">
+    <rule id="COMP-001" severity="warning">
+      <title>Testing Library queries</title>
+      <description>
+        Prefer getByRole, getByLabelText, getByText.
+        Avoid getByTestId except for non-semantic elements (icons, dynamic lists).
+      </description>
+    </rule>
+
+    <rule id="COMP-002" severity="warning">
+      <title>User event simulation</title>
+      <description>
+        Use @testing-library/user-event (not fireEvent) for clicks, typing, keyboard.
+        FavoriteButton: click → optimistic heart fill → API mock → verify state.
+      </description>
+    </rule>
+
+    <rule id="COMP-003" severity="warning">
+      <title>Mock external dependencies</title>
+      <description>
+        Mock: next/navigation (useRouter, useSearchParams), fetch/API calls, Mapbox.
+        Do NOT mock the component under test.
+      </description>
+    </rule>
+
+    <rule id="COMP-004" severity="info">
+      <title>Accessibility assertions</title>
+      <description>
+        Interactive components: test keyboard navigation (Tab, Enter, Escape).
+        StarRating: aria-label="Rate N stars".
+      </description>
+    </rule>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- INTEGRATION TEST STANDARDS                                 -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+
+  <section id="integration">
+    <rule id="INT-001" severity="error">
+      <title>Test database isolation</title>
+      <description>
+        Each test suite: beforeAll seed minimal data, afterEach truncate mutable tables (or transaction rollback).
+        NEVER run tests against development or production database.
+      </description>
+    </rule>
+
+    <rule id="INT-002" severity="error">
+      <title>Auth mocking for protected endpoints</title>
+      <description>
+        Integration tests for protected routes MUST mock auth session with test userId.
+        Test both authenticated and unauthenticated (expect 401).
+      </description>
+    </rule>
+
+    <rule id="INT-003" severity="warning">
+      <title>Booking overlap test</title>
+      <description>
+        MUST test: creating booking on occupied dates → 409 Conflict.
+        Parallel booking attempt (simulate race) → only one succeeds.
+      </description>
+    </rule>
+
+    <rule id="INT-004" severity="warning">
+      <title>Review eligibility test</title>
+      <description>
+        Test matrix:
+        - completed booking → 201,
+        - pending booking → 403,
+        - already reviewed → 409,
+        - wrong user → 403.
+      </description>
+    </rule>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- E2E TEST STANDARDS                                         -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+
+  <section id="e2e">
+    <rule id="E2E-001" severity="error">
+      <title>Critical path coverage</title>
+      <description>
+        MUST have E2E tests for:
+        1) Search flow: home → enter city → select dates → search → filter by price → click listing.
+        2) Booking flow: listing → select dates → checkout → see price breakdown → mock pay → profile shows trip.
+        3) Favorites: toggle heart → profile/favorites shows listing.
+        4) Review: completed trip → submit review → appears on listing page.
+      </description>
+    </rule>
+
+    <rule id="E2E-002" severity="warning">
+      <title>URL state persistence</title>
+      <description>
+        E2E: apply filters → copy URL → new page load → filters restored.
+        Browser back from listing → search filters preserved.
+      </description>
+    </rule>
+
+    <rule id="E2E-003" severity="warning">
+      <title>Page Object pattern</title>
+      <description>
+        tests/e2e/pages/HomePage.ts, SearchPage.ts, ListingPage.ts, CheckoutPage.ts.
+        Specs use page objects, not raw selectors inline.
+      </description>
+    </rule>
+
+    <rule id="E2E-004" severity="warning">
+      <title>Stable selectors</title>
+      <description>
+        Prefer data-testid for E2E-critical elements: search-submit, filter-price-slider, book-button, favorite-toggle.
+        Add data-testid in components for E2E targets (not for all elements).
+      </description>
+    </rule>
+
+    <rule id="E2E-005" severity="info">
+      <title>AI concierge smoke test</title>
+      <description>
+        Mock OpenAI response in E2E (route interception).
+        Verify: widget opens, question submitted, response rendered.
+        Do NOT call real OpenAI in CI.
+      </description>
+    </rule>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- MODULE TEST OWNERSHIP                                      -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+
+  <section id="ownership">
+    <module_tests module="search" owner="Dev A">
+      <required>parseSearchParams, buildSearchUrl, SearchFilters component, search API integration</required>
+    </module_tests>
+    <module_tests module="listing" owner="Dev B">
+      <required>AvailabilityCalendar, ImageGallery keyboard nav, concierge API (mocked AI)</required>
+    </module_tests>
+    <module_tests module="booking" owner="Dev C">
+      <required>calculateTotalPrice, createBooking integration, overlap detection</required>
+    </module_tests>
+    <module_tests module="profile" owner="Dev D">
+      <required>FavoriteButton optimistic update, trips list API, auth guard</required>
+    </module_tests>
+    <module_tests module="reviews" owner="Dev E">
+      <required>StarRating, submitReview eligibility, calculateAverageRating</required>
+    </module_tests>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- CI & QUALITY GATES                                         -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+
+  <section id="ci">
+    <rule id="CI-001" severity="error">
+      <title>CI pipeline stages</title>
+      <description>
+        1) lint (eslint), 2) typecheck (tsc --noEmit), 3) unit+integration (vitest),
+        4) E2E (playwright, on PR to main only).
+        All stages MUST pass before merge.
+      </description>
+    </rule>
+
+    <rule id="CI-002" severity="warning">
+      <title>Coverage thresholds</title>
+      <description>
+        Vitest coverage thresholds (vitest.config.ts):
+        shared/utils: 90%, modules/*/utils: 80%, overall: 70%.
+        Coverage drop on PR → warning comment, not block (until Phase 3).
+      </description>
+    </rule>
+
+    <rule id="CI-003" severity="warning">
+      <title>No flaky tests</title>
+      <description>
+        E2E: use waitFor with explicit conditions, not fixed sleep.
+        Retry failed E2E once in CI. Third failure → block merge.
+      </description>
+    </rule>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- MOCKING GUIDELINES                                         -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+
+  <section id="mocking">
+    <rule id="MOCK-001" severity="warning">
+      <title>Mock payment in all test envs</title>
+      <description>
+        mock-pay MUST complete in &lt;100ms in test mode (skip artificial delay).
+        Detect via NODE_ENV=test or PAYMENT_MOCK_FAST=true.
+      </description>
+    </rule>
+
+    <rule id="MOCK-002" severity="warning">
+      <title>Seed data for E2E</title>
+      <description>
+        Dedicated E2E seed: known listing IDs, user credentials (test@tripvibe.dev / password).
+        Document in tests/e2e/README.md.
+      </description>
+    </rule>
+
+    <rule id="MOCK-003" severity="info">
+      <title>Mapbox mock</title>
+      <description>
+        Component tests: mock react-map-gl with div placeholder.
+        E2E: map container visible, marker not required to render tiles.
+      </description>
+    </rule>
+  </section>
+
+</testing_rules>
