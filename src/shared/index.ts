@@ -9,7 +9,11 @@
  * - Экспортировать module-specific код
  */
 
-export type { ListingPreview, PropertyType, HostPreview } from '@/shared/types/listing';
+export type {
+  ListingPreview,
+  PropertyType,
+  HostPreview,
+} from '@/shared/types/listing';
 export type { SearchParams } from '@/shared/schemas/searchParams';
 export { parseSearchParams } from '@/shared/utils/parseSearchParams';
 export { buildSearchUrl } from '@/shared/utils/buildSearchUrl';

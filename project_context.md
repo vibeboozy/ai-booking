@@ -6,29 +6,29 @@ TripVibe — современная платформа бронирования 
 
 ## Документация проекта
 
-| Файл | Назначение |
-|------|------------|
-| [data_models.md](./data_models.md) | Модели данных, связи, TypeScript-типы, API-контракты |
-| [semantic_graph.xml](./semantic_graph.xml) | Модули и их взаимодействие |
-| [dev_plan.xml](./dev_plan.xml) | Этапы разработки |
-| [rules/](./rules/) | Стандарты кода, БД, безопасности, тестов |
+| Файл                                       | Назначение                                           |
+| ------------------------------------------ | ---------------------------------------------------- |
+| [data_models.md](./data_models.md)         | Модели данных, связи, TypeScript-типы, API-контракты |
+| [semantic_graph.xml](./semantic_graph.xml) | Модули и их взаимодействие                           |
+| [dev_plan.xml](./dev_plan.xml)             | Этапы разработки                                     |
+| [rules/](./rules/)                         | Стандарты кода, БД, безопасности, тестов             |
 
 ## Tech Stack
 
-| Layer | Technology | Rationale |
-|-------|------------|-----------|
-| Framework | **Next.js 15** (App Router) | SSR/SSG, Server Actions, единый full-stack |
-| Language | **TypeScript** (strict) | Типобезопасность при параллельной разработке 5 модулей |
-| Styling | **Tailwind CSS** + **shadcn/ui** | Быстрая сборка UI, единый дизайн-система |
-| State (client) | **React hooks** + **nuqs** / `useSearchParams` | URL как единственный источник правды для фильтров |
-| Data fetching | **Server Components** + **TanStack Query** (client) | RSC для начальной загрузки, React Query для интерактива |
-| Database | **PostgreSQL** + **Prisma ORM** | Реляционная модель (users, listings, bookings, reviews) |
-| Auth | **NextAuth.js v5** (Auth.js) | OAuth + credentials, session в JWT/cookie |
-| Maps | **Mapbox GL** / **react-map-gl** | Маркер на карточке объекта |
-| AI | **Vercel AI SDK** (`ai`, `@ai-sdk/openai`) | ИИ-Консьерж на странице жилья |
-| Validation | **Zod** | Схемы для API, форм, URL-параметров |
-| Testing | **Vitest** + **Playwright** | Unit/integration + E2E критических флоу |
-| Linting | **ESLint** + **Prettier** | Единый стиль кода |
+| Layer          | Technology                                          | Rationale                                               |
+| -------------- | --------------------------------------------------- | ------------------------------------------------------- |
+| Framework      | **Next.js 15** (App Router)                         | SSR/SSG, Server Actions, единый full-stack              |
+| Language       | **TypeScript** (strict)                             | Типобезопасность при параллельной разработке 5 модулей  |
+| Styling        | **Tailwind CSS** + **shadcn/ui**                    | Быстрая сборка UI, единый дизайн-система                |
+| State (client) | **React hooks** + **nuqs** / `useSearchParams`      | URL как единственный источник правды для фильтров       |
+| Data fetching  | **Server Components** + **TanStack Query** (client) | RSC для начальной загрузки, React Query для интерактива |
+| Database       | **PostgreSQL** + **Prisma ORM**                     | Реляционная модель (users, listings, bookings, reviews) |
+| Auth           | **NextAuth.js v5** (Auth.js)                        | OAuth + credentials, session в JWT/cookie               |
+| Maps           | **Mapbox GL** / **react-map-gl**                    | Маркер на карточке объекта                              |
+| AI             | **Vercel AI SDK** (`ai`, `@ai-sdk/openai`)          | ИИ-Консьерж на странице жилья                           |
+| Validation     | **Zod**                                             | Схемы для API, форм, URL-параметров                     |
+| Testing        | **Vitest** + **Playwright**                         | Unit/integration + E2E критических флоу                 |
+| Linting        | **ESLint** + **Prettier**                           | Единый стиль кода                                       |
 
 ## Architectural Principles
 
@@ -64,13 +64,13 @@ src/
 
 ## Module Ownership
 
-| Module | Owner | Scope |
-|--------|-------|-------|
-| `search` | Dev A | Главная форма поиска, автокомплит, страница результатов, фильтры |
-| `listing` | Dev B | Галерея, карта, описание, календарь доступности, ИИ-Консьерж |
-| `booking` | Dev C | Чекаут, выбор дат, расчёт цены, mock-оплата |
-| `profile` | Dev D | Будущие трипы, история, избранное (сердечки) |
-| `reviews` | Dev E | Форма отзыва, звёзды, агрегация рейтингов |
+| Module    | Owner | Scope                                                            |
+| --------- | ----- | ---------------------------------------------------------------- |
+| `search`  | Dev A | Главная форма поиска, автокомплит, страница результатов, фильтры |
+| `listing` | Dev B | Галерея, карта, описание, календарь доступности, ИИ-Консьерж     |
+| `booking` | Dev C | Чекаут, выбор дат, расчёт цены, mock-оплата                      |
+| `profile` | Dev D | Будущие трипы, история, избранное (сердечки)                     |
+| `reviews` | Dev E | Форма отзыва, звёзды, агрегация рейтингов                        |
 
 ## Cross-Cutting Features
 
@@ -80,15 +80,15 @@ src/
 
 ## Non-Functional Requirements
 
-| NFR | Target |
-|-----|--------|
-| Time to Interactive (search results) | < 2 s на 3G |
-| Filter update latency | < 300 ms (client-side + debounced URL sync) |
-| Lighthouse Performance | ≥ 90 |
-| Accessibility | WCAG 2.1 AA |
-| Mobile-first | ≥ 60 % трафика — мобильные |
-| SEO | SSR для `/search`, `/listings/[id]` |
-| i18n-ready | Строки через constants; RU на старте |
+| NFR                                  | Target                                      |
+| ------------------------------------ | ------------------------------------------- |
+| Time to Interactive (search results) | < 2 s на 3G                                 |
+| Filter update latency                | < 300 ms (client-side + debounced URL sync) |
+| Lighthouse Performance               | ≥ 90                                        |
+| Accessibility                        | WCAG 2.1 AA                                 |
+| Mobile-first                         | ≥ 60 % трафика — мобильные                  |
+| SEO                                  | SSR для `/search`, `/listings/[id]`         |
+| i18n-ready                           | Строки через constants; RU на старте        |
 
 ## Environment Variables
 

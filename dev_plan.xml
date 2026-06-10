@@ -58,6 +58,15 @@
         </details>
         <acceptance>Единый visual language на всех страницах-заглушках</acceptance>
       </task>
+
+      <task id="0.6" priority="high">
+        <title>Auth page (login/registration)</title>
+        <details>
+          Реализовать страницу /login с формой входа (email/password) и ссылкой на регистрацию.
+          Использовать NextAuth.js signIn, поддержать callbackUrl для редиректа после входа.
+        </details>
+        <acceptance>Login работает, редирект по callbackUrl, session доступна в Server Components</acceptance>
+      </task>
     </tasks>
 
     <integration_checkpoint>

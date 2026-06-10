@@ -1,19 +1,29 @@
+import {
+  searchParamsSchema,
+  type SearchParams,
+} from '@/shared/schemas/searchParams';
+
 /**
- * ANCHOR: shared
- * PURPOSE: Парсинг raw searchParams (Next.js) в типизированный SearchParams.
- * Dependencies: @/shared/schemas/searchParams.
- * CRITICAL: Используется search, listing, booking для чтения URL.
- *
- * DO:
- * - Валидировать и нормализовать даты (YYYY-MM-DD), guests (1–16)
- * DONT:
- * - Дублировать логику парсинга в модулях
+ * Parses raw Next.js searchParams (Record<string, string | string[] | undefined>)
+ * into a validated SearchParams object using Zod schema.
+ * Invalid fields are ignored; defaults are applied by the schema (optional).
  */
-
-import type { SearchParams } from '@/shared/schemas/searchParams';
-
 export function parseSearchParams(
-  _raw: Record<string, string | string[] | undefined>,
+  raw: Record<string, string | string[] | undefined>,
 ): SearchParams {
-  return {};
+  // Convert possible string[] to first element for simplicity, as our schema expects scalar values.
+  const normalized: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(raw)) {
+    if (Array.isArray(value)) {
+      normalized[key] = value[0];
+    } else {
+      normalized[key] = value;
+    }
+  }
+  const result = searchParamsSchema.safeParse(normalized);
+  if (!result.success) {
+    // In case of validation errors, return empty object (defaults will be applied downstream).
+    return {} as SearchParams;
+  }
+  return result.data;
 }

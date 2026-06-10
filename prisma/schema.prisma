@@ -15,8 +15,8 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider = "sqlite"
+  url      = "file:./dev.db"
 }
 
 enum PropertyType {
@@ -55,7 +55,7 @@ model User {
 model Listing {
   id             String       @id @default(cuid())
   title          String
-  description    String       @db.Text
+  description    String
   city           String
   country        String
   lat            Float
@@ -64,8 +64,8 @@ model Listing {
   cleaningFee    Int
   serviceFee     Int
   propertyType   PropertyType
-  amenities      String[]
-  images         String[]
+  amenities      Json
+  images         Json
   hostId         String
   averageRating  Float        @default(0)
   reviewCount    Int          @default(0)
@@ -87,8 +87,8 @@ model Booking {
   id         String        @id @default(cuid())
   userId     String
   listingId  String
-  checkIn    DateTime      @db.Date
-  checkOut   DateTime      @db.Date
+  checkIn    DateTime
+  checkOut   DateTime
   guests     Int
   totalPrice Int
   status     BookingStatus @default(PENDING)
@@ -121,8 +121,8 @@ model Review {
   listingId String
   bookingId String   @unique
   rating    Int
-  text      String   @db.Text
-  photos    String[]
+  text      String
+  photos    Json
   createdAt DateTime @default(now())
 
   user    User    @relation(fields: [userId], references: [id])

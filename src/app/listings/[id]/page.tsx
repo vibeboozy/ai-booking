@@ -19,7 +19,7 @@ export default async function ListingPage(_props: ListingPageProps) {
   return (
     <main>
       <h1>Объект</h1>
-      {/* TODO: ImageGallery, ListingDetails, ListingMap, AvailabilityCalendar, AIConcierge */}
+      {/* TODO: ImageGallery, ListingDetails, ListingMap, AvailabilityCalendar */}
     </main>
   );
 }

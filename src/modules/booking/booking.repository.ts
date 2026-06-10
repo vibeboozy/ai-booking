@@ -19,6 +19,9 @@ export async function createBookingRecord(
   throw new Error('Not implemented');
 }
 
-export async function confirmBookingPayment(_bookingId: string, _userId: string): Promise<Booking> {
+export async function confirmBookingPayment(
+  _bookingId: string,
+  _userId: string,
+): Promise<Booking> {
   throw new Error('Not implemented');
 }

@@ -98,13 +98,13 @@ erDiagram
 
 ## Перечисления (Enums)
 
-| Enum | Значения (Prisma) | Значения (API / URL) | Где используется |
-|------|-------------------|----------------------|------------------|
-| `PropertyType` | `APARTMENT`, `HOUSE`, `ROOM` | `apartment`, `house`, `room` | Listing, фильтры поиска |
-| `BookingStatus` | `PENDING`, `CONFIRMED`, `COMPLETED`, `CANCELLED` | те же, lowercase | Booking, профиль |
-| `LocationType` | `CITY`, `COUNTRY` | `city`, `country` | Location, автокомплит |
-| `Amenity` | — (массив строк) | `wifi`, `kitchen`, `parking` | Listing, фильтры |
-| `AvailabilityDayStatus` | — (вычисляемый) | `free`, `booked`, `past` | Календарь доступности |
+| Enum                    | Значения (Prisma)                                | Значения (API / URL)         | Где используется        |
+| ----------------------- | ------------------------------------------------ | ---------------------------- | ----------------------- |
+| `PropertyType`          | `APARTMENT`, `HOUSE`, `ROOM`                     | `apartment`, `house`, `room` | Listing, фильтры поиска |
+| `BookingStatus`         | `PENDING`, `CONFIRMED`, `COMPLETED`, `CANCELLED` | те же, lowercase             | Booking, профиль        |
+| `LocationType`          | `CITY`, `COUNTRY`                                | `city`, `country`            | Location, автокомплит   |
+| `Amenity`               | — (массив строк)                                 | `wifi`, `kitchen`, `parking` | Listing, фильтры        |
+| `AvailabilityDayStatus` | — (вычисляемый)                                  | `free`, `booked`, `past`     | Календарь доступности   |
 
 **Правило маппинга:** в Prisma — `SCREAMING_SNAKE`, в JSON и URL — `lowercase`.
 
@@ -114,15 +114,15 @@ erDiagram
 
 ### User
 
-| Поле | Тип | Обяз. | Описание |
-|------|-----|-------|----------|
-| `id` | `String` (cuid) | да | PK |
-| `email` | `String` | да | Уникальный, для входа |
-| `name` | `String` | да | Отображаемое имя |
-| `avatarUrl` | `String?` | нет | URL аватара |
-| `passwordHash` | `String?` | нет | Только для credentials-провайдера |
-| `createdAt` | `DateTime` | да | Авто |
-| `updatedAt` | `DateTime` | да | Авто |
+| Поле           | Тип             | Обяз. | Описание                          |
+| -------------- | --------------- | ----- | --------------------------------- |
+| `id`           | `String` (cuid) | да    | PK                                |
+| `email`        | `String`        | да    | Уникальный, для входа             |
+| `name`         | `String`        | да    | Отображаемое имя                  |
+| `avatarUrl`    | `String?`       | нет   | URL аватара                       |
+| `passwordHash` | `String?`       | нет   | Только для credentials-провайдера |
+| `createdAt`    | `DateTime`      | да    | Авто                              |
+| `updatedAt`    | `DateTime`      | да    | Авто                              |
 
 **Связи:** `listings[]`, `bookings[]`, `favorites[]`, `reviews[]`  
 **Owner:** shared
@@ -131,26 +131,26 @@ erDiagram
 
 ### Listing
 
-| Поле | Тип | Обяз. | Описание |
-|------|-----|-------|----------|
-| `id` | `String` (cuid) | да | PK |
-| `title` | `String` | да | Заголовок карточки |
-| `description` | `String` @db.Text | да | Полное описание (контекст для ИИ-Консьержа) |
-| `city` | `String` | да | Город |
-| `country` | `String` | да | Страна |
-| `lat` | `Float` | да | Широта для карты |
-| `lng` | `Float` | да | Долгота для карты |
-| `pricePerNight` | `Int` | да | Цена за ночь в **копейках** |
-| `cleaningFee` | `Int` | да | Уборка, копейки |
-| `serviceFee` | `Int` | да | Сервисный сбор, копейки |
-| `propertyType` | `PropertyType` | да | apartment / house / room |
-| `amenities` | `String[]` | да | `["wifi", "kitchen", "parking", ...]` |
-| `images` | `String[]` | да | URL фотографий, порядок = порядок в галерее |
-| `hostId` | `String` | да | FK → User |
-| `averageRating` | `Float` | да | Денормализация, default `0` |
-| `reviewCount` | `Int` | да | Денормализация, default `0` |
-| `createdAt` | `DateTime` | да | Авто |
-| `updatedAt` | `DateTime` | да | Авто |
+| Поле            | Тип               | Обяз. | Описание                                    |
+| --------------- | ----------------- | ----- | ------------------------------------------- |
+| `id`            | `String` (cuid)   | да    | PK                                          |
+| `title`         | `String`          | да    | Заголовок карточки                          |
+| `description`   | `String` @db.Text | да    | Полное описание (контекст для ИИ-Консьержа) |
+| `city`          | `String`          | да    | Город                                       |
+| `country`       | `String`          | да    | Страна                                      |
+| `lat`           | `Float`           | да    | Широта для карты                            |
+| `lng`           | `Float`           | да    | Долгота для карты                           |
+| `pricePerNight` | `Int`             | да    | Цена за ночь в **копейках**                 |
+| `cleaningFee`   | `Int`             | да    | Уборка, копейки                             |
+| `serviceFee`    | `Int`             | да    | Сервисный сбор, копейки                     |
+| `propertyType`  | `PropertyType`    | да    | apartment / house / room                    |
+| `amenities`     | `String[]`        | да    | `["wifi", "kitchen", "parking", ...]`       |
+| `images`        | `String[]`        | да    | URL фотографий, порядок = порядок в галерее |
+| `hostId`        | `String`          | да    | FK → User                                   |
+| `averageRating` | `Float`           | да    | Денормализация, default `0`                 |
+| `reviewCount`   | `Int`             | да    | Денормализация, default `0`                 |
+| `createdAt`     | `DateTime`        | да    | Авто                                        |
+| `updatedAt`     | `DateTime`        | да    | Авто                                        |
 
 **Связи:** `host` → User, `bookings[]`, `favorites[]`, `reviews[]`  
 **Индексы:** `(city, country)`, `propertyType`, `pricePerNight`, `averageRating`  
@@ -162,18 +162,18 @@ erDiagram
 
 ### Booking
 
-| Поле | Тип | Обяз. | Описание |
-|------|-----|-------|----------|
-| `id` | `String` (cuid) | да | PK |
-| `userId` | `String` | да | FK → User (кто бронирует) |
-| `listingId` | `String` | да | FK → Listing |
-| `checkIn` | `DateTime` @db.Date | да | Дата заезда |
-| `checkOut` | `DateTime` @db.Date | да | Дата выезда, **строго > checkIn** |
-| `guests` | `Int` | да | 1–16 |
-| `totalPrice` | `Int` | да | Итог в копейках, **пересчитывается на сервере** |
-| `status` | `BookingStatus` | да | default `PENDING` |
-| `createdAt` | `DateTime` | да | Авто |
-| `updatedAt` | `DateTime` | да | Авто |
+| Поле         | Тип                 | Обяз. | Описание                                        |
+| ------------ | ------------------- | ----- | ----------------------------------------------- |
+| `id`         | `String` (cuid)     | да    | PK                                              |
+| `userId`     | `String`            | да    | FK → User (кто бронирует)                       |
+| `listingId`  | `String`            | да    | FK → Listing                                    |
+| `checkIn`    | `DateTime` @db.Date | да    | Дата заезда                                     |
+| `checkOut`   | `DateTime` @db.Date | да    | Дата выезда, **строго > checkIn**               |
+| `guests`     | `Int`               | да    | 1–16                                            |
+| `totalPrice` | `Int`               | да    | Итог в копейках, **пересчитывается на сервере** |
+| `status`     | `BookingStatus`     | да    | default `PENDING`                               |
+| `createdAt`  | `DateTime`          | да    | Авто                                            |
+| `updatedAt`  | `DateTime`          | да    | Авто                                            |
 
 **Связи:** `user` → User, `listing` → Listing, `review?` → Review (0..1)  
 **Индексы:** `(userId, status)`, `(listingId, checkIn, checkOut)`  
@@ -187,23 +187,23 @@ PENDING → CONFIRMED → COMPLETED
 CANCELLED  CANCELLED
 ```
 
-| Статус | Когда | UI |
-|--------|-------|-----|
-| `PENDING` | Создан, оплата не прошла | — |
-| `CONFIRMED` | mock-pay успешен | «Предстоящая поездка» |
-| `COMPLETED` | `checkOut` в прошлом | «История», доступен отзыв |
-| `CANCELLED` | Отмена пользователем | Не блокирует календарь |
+| Статус      | Когда                    | UI                        |
+| ----------- | ------------------------ | ------------------------- |
+| `PENDING`   | Создан, оплата не прошла | —                         |
+| `CONFIRMED` | mock-pay успешен         | «Предстоящая поездка»     |
+| `COMPLETED` | `checkOut` в прошлом     | «История», доступен отзыв |
+| `CANCELLED` | Отмена пользователем     | Не блокирует календарь    |
 
 ---
 
 ### Favorite
 
-| Поле | Тип | Обяз. | Описание |
-|------|-----|-------|----------|
-| `id` | `String` (cuid) | да | PK |
-| `userId` | `String` | да | FK → User |
-| `listingId` | `String` | да | FK → Listing |
-| `createdAt` | `DateTime` | да | Авто |
+| Поле        | Тип             | Обяз. | Описание     |
+| ----------- | --------------- | ----- | ------------ |
+| `id`        | `String` (cuid) | да    | PK           |
+| `userId`    | `String`        | да    | FK → User    |
+| `listingId` | `String`        | да    | FK → Listing |
+| `createdAt` | `DateTime`      | да    | Авто         |
 
 **Ограничение:** уникальная пара `(userId, listingId)`  
 **Owner:** profile (Dev D)
@@ -212,16 +212,16 @@ CANCELLED  CANCELLED
 
 ### Review
 
-| Поле | Тип | Обяз. | Описание |
-|------|-----|-------|----------|
-| `id` | `String` (cuid) | да | PK |
-| `userId` | `String` | да | FK → User (автор) |
-| `listingId` | `String` | да | FK → Listing |
-| `bookingId` | `String` | да | FK → Booking, **уникальный** (1 отзыв на бронь) |
-| `rating` | `Int` | да | 1–5 звёзд |
-| `text` | `String` @db.Text | да | Текст отзыва |
-| `photos` | `String[]` | нет | URL загруженных фото |
-| `createdAt` | `DateTime` | да | Авто |
+| Поле        | Тип               | Обяз. | Описание                                        |
+| ----------- | ----------------- | ----- | ----------------------------------------------- |
+| `id`        | `String` (cuid)   | да    | PK                                              |
+| `userId`    | `String`          | да    | FK → User (автор)                               |
+| `listingId` | `String`          | да    | FK → Listing                                    |
+| `bookingId` | `String`          | да    | FK → Booking, **уникальный** (1 отзыв на бронь) |
+| `rating`    | `Int`             | да    | 1–5 звёзд                                       |
+| `text`      | `String` @db.Text | да    | Текст отзыва                                    |
+| `photos`    | `String[]`        | нет   | URL загруженных фото                            |
+| `createdAt` | `DateTime`        | да    | Авто                                            |
 
 **Условия создания:** `booking.userId === currentUser`, `booking.status === COMPLETED`, отзыва ещё нет.  
 **Побочный эффект:** обновление `Listing.averageRating` и `Listing.reviewCount`.  
@@ -231,14 +231,14 @@ CANCELLED  CANCELLED
 
 ### Location
 
-| Поле | Тип | Обяз. | Описание |
-|------|-----|-------|----------|
-| `id` | `String` (cuid) | да | PK |
-| `name` | `String` | да | «Сочи», «Россия» |
-| `type` | `LocationType` | да | `CITY` или `COUNTRY` |
-| `slug` | `String` | да | Уникальный, для URL (`sochi`) |
-| `lat` | `Float?` | нет | Координаты (опционально) |
-| `lng` | `Float?` | нет | Координаты (опционально) |
+| Поле   | Тип             | Обяз. | Описание                      |
+| ------ | --------------- | ----- | ----------------------------- |
+| `id`   | `String` (cuid) | да    | PK                            |
+| `name` | `String`        | да    | «Сочи», «Россия»              |
+| `type` | `LocationType`  | да    | `CITY` или `COUNTRY`          |
+| `slug` | `String`        | да    | Уникальный, для URL (`sochi`) |
+| `lat`  | `Float?`        | нет   | Координаты (опционально)      |
+| `lng`  | `Float?`        | нет   | Координаты (опционально)      |
 
 **Назначение:** автокомплит на главной. Не связана FK с Listing (поиск по `city`/`country` строкой).  
 **Owner:** search (Dev A)
@@ -260,7 +260,7 @@ type ListingPreview = {
   title: string;
   city: string;
   country: string;
-  pricePerNight: number;   // копейки
+  pricePerNight: number; // копейки
   images: string[];
   averageRating: number;
   reviewCount: number;
@@ -283,13 +283,13 @@ type ListingDetail = ListingPreview & {
   amenities: string[];
   lat: number;
   lng: number;
-  cleaningFee: number;     // копейки
-  serviceFee: number;      // копейки
+  cleaningFee: number; // копейки
+  serviceFee: number; // копейки
   host: HostPreview;
 };
 
 type AvailabilityDay = {
-  date: string;            // YYYY-MM-DD
+  date: string; // YYYY-MM-DD
   status: 'free' | 'booked' | 'past';
 };
 ```
@@ -301,14 +301,14 @@ type AvailabilityDay = {
 type SearchParams = {
   city?: string;
   country?: string;
-  checkIn?: string;        // YYYY-MM-DD
+  checkIn?: string; // YYYY-MM-DD
   checkOut?: string;
-  guests?: number;         // 1–16, default 2
-  priceMin?: number;       // копейки
+  guests?: number; // 1–16, default 2
+  priceMin?: number; // копейки
   priceMax?: number;
   propertyType?: PropertyType;
-  amenities?: string[];    // ['wifi', 'kitchen']
-  page?: number;           // default 1
+  amenities?: string[]; // ['wifi', 'kitchen']
+  page?: number; // default 1
 };
 
 // src/modules/search/types.ts
@@ -347,7 +347,7 @@ type Booking = {
 
 type PriceBreakdown = {
   nights: number;
-  subtotal: number;        // pricePerNight × nights
+  subtotal: number; // pricePerNight × nights
   cleaningFee: number;
   serviceFee: number;
   total: number;
@@ -368,7 +368,7 @@ type Favorite = {
 type Trip = {
   booking: Booking;
   listing: ListingPreview;
-  canReview: boolean;      // status === 'completed' && нет отзыва
+  canReview: boolean; // status === 'completed' && нет отзыва
 };
 ```
 
@@ -378,7 +378,7 @@ type Trip = {
 // src/modules/reviews/types.ts
 type ReviewInput = {
   bookingId: string;
-  rating: number;          // 1–5
+  rating: number; // 1–5
   text: string;
   photos?: string[];
 };
@@ -389,7 +389,7 @@ type ReviewPublic = {
   text: string;
   photos: string[];
   author: {
-    name: string;          // «Анна К.» — first name + last initial
+    name: string; // «Анна К.» — first name + last initial
     avatarUrl?: string;
   };
   createdAt: string;
@@ -400,26 +400,26 @@ type ReviewPublic = {
 
 ## Маппинг: БД → API-типы
 
-| Prisma-модель | API-тип | Где отдаётся | Примечания |
-|---------------|---------|--------------|------------|
-| `Listing` (select) | `ListingPreview` | search, favorites, profile | Без `description` |
-| `Listing` (full) | `ListingDetail` | GET `/api/listings/[id]` | + host relation |
-| `Booking` + `Listing` | `Trip` | GET `/api/profile/trips` | JOIN + `canReview` |
-| `Review` + `User` | `ReviewPublic` | GET `/api/listings/[id]/reviews` | PII автора маскируется |
-| `Location` | `Location` | autocomplete | Как есть |
-| — (computed) | `AvailabilityDay[]` | GET `.../availability` | Из Booking dates |
-| — (computed) | `PriceBreakdown` | checkout, booking API | `calculateTotalPrice()` |
+| Prisma-модель         | API-тип             | Где отдаётся                     | Примечания              |
+| --------------------- | ------------------- | -------------------------------- | ----------------------- |
+| `Listing` (select)    | `ListingPreview`    | search, favorites, profile       | Без `description`       |
+| `Listing` (full)      | `ListingDetail`     | GET `/api/listings/[id]`         | + host relation         |
+| `Booking` + `Listing` | `Trip`              | GET `/api/profile/trips`         | JOIN + `canReview`      |
+| `Review` + `User`     | `ReviewPublic`      | GET `/api/listings/[id]/reviews` | PII автора маскируется  |
+| `Location`            | `Location`          | autocomplete                     | Как есть                |
+| — (computed)          | `AvailabilityDay[]` | GET `.../availability`           | Из Booking dates        |
+| — (computed)          | `PriceBreakdown`    | checkout, booking API            | `calculateTotalPrice()` |
 
 ---
 
 ## Деньги: единые правила
 
-| Контекст | Формат | Пример |
-|----------|--------|--------|
-| БД (`pricePerNight`, `totalPrice`, fees) | `Int`, копейки | `350000` = 3 500 ₽ |
-| TypeScript / JSON API | `number`, копейки | `{ "pricePerNight": 350000 }` |
-| UI | `formatPrice(cents)` | `"3 500 ₽"` |
-| URL (`priceMin`, `priceMax`) | integer, копейки | `?priceMax=500000` |
+| Контекст                                 | Формат               | Пример                        |
+| ---------------------------------------- | -------------------- | ----------------------------- |
+| БД (`pricePerNight`, `totalPrice`, fees) | `Int`, копейки       | `350000` = 3 500 ₽            |
+| TypeScript / JSON API                    | `number`, копейки    | `{ "pricePerNight": 350000 }` |
+| UI                                       | `formatPrice(cents)` | `"3 500 ₽"`                   |
+| URL (`priceMin`, `priceMax`)             | integer, копейки     | `?priceMax=500000`            |
 
 Клиент **не** передаёт `totalPrice` как источник правды — сервер пересчитывает через `calculateTotalPrice()`.
 
@@ -427,16 +427,16 @@ type ReviewPublic = {
 
 ## Карта владения моделями
 
-| Модель / тип | Owner | CRUD через |
-|--------------|-------|------------|
-| `User` | shared | NextAuth |
-| `Listing` | Dev B (listing) | listing repository |
-| `Booking` | Dev C (booking) | booking repository |
-| `Favorite` | Dev D (profile) | profile repository |
-| `Review` | Dev E (reviews) | reviews repository |
-| `Location` | Dev A (search) | search repository |
-| `SearchParams`, `ListingPreview` | shared | — |
-| `PriceBreakdown` | Dev C (booking) | `calculateTotalPrice()` |
+| Модель / тип                     | Owner           | CRUD через              |
+| -------------------------------- | --------------- | ----------------------- |
+| `User`                           | shared          | NextAuth                |
+| `Listing`                        | Dev B (listing) | listing repository      |
+| `Booking`                        | Dev C (booking) | booking repository      |
+| `Favorite`                       | Dev D (profile) | profile repository      |
+| `Review`                         | Dev E (reviews) | reviews repository      |
+| `Location`                       | Dev A (search)  | search repository       |
+| `SearchParams`, `ListingPreview` | shared          | —                       |
+| `PriceBreakdown`                 | Dev C (booking) | `calculateTotalPrice()` |
 
 Изменение полей модели — PR от owner-модуля. Изменение shared-типов — согласование со всеми consumers (см. `semantic_graph.xml` → contracts).
 

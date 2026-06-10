@@ -18,6 +18,9 @@ export const metadata: Metadata = {
   description: 'Бронирование жилья для поколения Z',
 };
 
+import Header from '@/shared/ui/Header';
+import Footer from '@/shared/ui/Footer';
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -25,7 +28,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ru">
-      <body>{children}</body>
+      <body className="min-h-screen flex flex-col">
+        <Header />
+        <main className="flex-1">{children}</main>
+        <Footer />
+      </body>
     </html>
   );
 }

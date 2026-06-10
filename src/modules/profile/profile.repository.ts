@@ -20,14 +20,22 @@ export async function getUserTrips(
   return [];
 }
 
-export async function getUserFavorites(_userId: string): Promise<ListingPreview[]> {
+export async function getUserFavorites(
+  _userId: string,
+): Promise<ListingPreview[]> {
   return [];
 }
 
-export async function addFavorite(_userId: string, _listingId: string): Promise<Favorite> {
+export async function addFavorite(
+  _userId: string,
+  _listingId: string,
+): Promise<Favorite> {
   throw new Error('Not implemented');
 }
 
-export async function removeFavorite(_userId: string, _listingId: string): Promise<void> {
+export async function removeFavorite(
+  _userId: string,
+  _listingId: string,
+): Promise<void> {
   throw new Error('Not implemented');
 }

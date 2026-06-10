@@ -261,6 +261,14 @@
       <rule>Модули импортируют только из shared/ и своих exports других модулей</rule>
     </module>
 
+  <module id="auth" owner="all" path="src/app/login">
+    <responsibility>
+      Страница входа/регистрации, использует NextAuth.js.
+    </responsibility>
+    <owns>
+      <route>/login</route>
+    </owns>
+  </module>
   </modules>
 
   <!-- ═══════════════════════════════════════════════════════════ -->

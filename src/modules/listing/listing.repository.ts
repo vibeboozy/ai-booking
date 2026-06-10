@@ -12,7 +12,9 @@
 
 import type { AvailabilityDay, ListingDetail } from '@/modules/listing/types';
 
-export async function getListingById(_id: string): Promise<ListingDetail | null> {
+export async function getListingById(
+  _id: string,
+): Promise<ListingDetail | null> {
   return null;
 }
 
