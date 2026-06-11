@@ -58,11 +58,21 @@
         </details>
         <acceptance>Единый visual language на всех страницах-заглушках</acceptance>
       </task>
+
+      <task id="0.6" priority="critical">
+        <title>Login page and auth flow</title>
+        <details>
+          Страница /login: форма email/password, кнопка Google OAuth, dev quick-login.
+          Поддержка callbackUrl query param. Server Action signIn + signOut в header.
+          Редирект после успешного входа на callbackUrl или /profile.
+        </details>
+        <acceptance>Неавторизованный пользователь может войти и попасть на защищённый /profile</acceptance>
+      </task>
     </tasks>
 
     <integration_checkpoint>
       Все 5 dev-ов могут начать работу в своих modules/ директориях.
-      Seed data доступна. Auth работает.
+      Seed data доступна. Auth работает. Login page доступна.
     </integration_checkpoint>
   </phase>
 
@@ -356,6 +366,8 @@
     <dep from="1.C.1" to="1.B.4" note="AvailabilityCalendar export"/>
     <dep from="1.C.2" to="0.2" note="Listing fee fields"/>
     <dep from="1.D.2" to="0.3" note="Auth for favorites"/>
+    <dep from="1.C.4" to="0.6" note="Login redirect on checkout"/>
+    <dep from="2.3" to="0.6" note="Login page with callbackUrl"/>
     <dep from="1.E.1" to="1.C.3" note="Completed bookings exist"/>
     <dep from="2.1" to="1.*" note="All modules complete"/>
     <dep from="3.1" to="2.*" note="Integration complete"/>
