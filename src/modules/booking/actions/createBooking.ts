@@ -9,6 +9,8 @@
 
 import type { BookingCreateInput } from '@/modules/booking/types';
 
-export async function createBooking(_input: BookingCreateInput): Promise<{ data?: unknown; error?: string }> {
+export async function createBooking(
+  _input: BookingCreateInput,
+): Promise<{ data?: unknown; error?: string }> {
   return { error: 'Not implemented' };
 }

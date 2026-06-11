@@ -14,4 +14,8 @@ export { PriceBreakdown } from '@/modules/booking/components/PriceBreakdown';
 export { MockPaymentButton } from '@/modules/booking/components/MockPaymentButton';
 export { useCheckout } from '@/modules/booking/hooks/useCheckout';
 export { calculateTotalPrice } from '@/modules/booking/utils/calculateTotalPrice';
-export type { Booking, BookingCreateInput, PriceBreakdown as PriceBreakdownType } from '@/modules/booking/types';
+export type {
+  Booking,
+  BookingCreateInput,
+  PriceBreakdown as PriceBreakdownType,
+} from '@/modules/booking/types';

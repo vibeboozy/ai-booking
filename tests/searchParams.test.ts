@@ -38,7 +38,9 @@ describe('search params URL utils', () => {
   });
 
   it('returns empty object for invalid params', () => {
-    expect(parseSearchParams({ guests: '99', checkIn: 'bad-date' })).toEqual({});
+    expect(parseSearchParams({ guests: '99', checkIn: 'bad-date' })).toEqual(
+      {},
+    );
   });
 
   it('roundtrips parse → build → parse', () => {

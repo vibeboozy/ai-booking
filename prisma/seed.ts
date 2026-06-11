@@ -56,7 +56,14 @@ const CITIES = [
   },
 ] as const;
 
-const AMENITY_POOL = ['wifi', 'kitchen', 'parking', 'washer', 'ac', 'tv'] as const;
+const AMENITY_POOL = [
+  'wifi',
+  'kitchen',
+  'parking',
+  'washer',
+  'ac',
+  'tv',
+] as const;
 
 const PROPERTY_TYPES = [
   PropertyType.APARTMENT,
@@ -167,7 +174,10 @@ async function seedListings(hostId: string): Promise<string[]> {
   return listingIds;
 }
 
-async function seedBookings(userId: string, listingIds: string[]): Promise<void> {
+async function seedBookings(
+  userId: string,
+  listingIds: string[],
+): Promise<void> {
   const bookingId = 'seed-booking-dev-upcoming';
   const listingId = listingIds[0];
 

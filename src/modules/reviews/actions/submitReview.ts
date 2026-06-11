@@ -9,6 +9,8 @@
 
 import type { ReviewInput } from '@/modules/reviews/types';
 
-export async function submitReview(_input: ReviewInput): Promise<{ data?: unknown; error?: string }> {
+export async function submitReview(
+  _input: ReviewInput,
+): Promise<{ data?: unknown; error?: string }> {
   return { error: 'Not implemented' };
 }

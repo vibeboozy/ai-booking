@@ -15,9 +15,7 @@ import {
   type SearchParams,
 } from '@/shared/schemas/searchParams';
 
-function firstValue(
-  value: string | string[] | undefined,
-): string | undefined {
+function firstValue(value: string | string[] | undefined): string | undefined {
   if (value === undefined) {
     return undefined;
   }
@@ -29,7 +27,11 @@ export function parseSearchParams(
 ): SearchParams {
   const amenitiesRaw = firstValue(raw.amenities);
   const amenities = amenitiesRaw
-    ? amenitiesRaw.split(',').map((a) => a.trim()).filter(Boolean).sort()
+    ? amenitiesRaw
+        .split(',')
+        .map((a) => a.trim())
+        .filter(Boolean)
+        .sort()
     : undefined;
 
   const parsed = searchParamsSchema.safeParse({

@@ -33,7 +33,10 @@ type LoginFormProps = {
 const initialState: LoginState = {};
 
 export function LoginForm({ callbackUrl, googleEnabled }: LoginFormProps) {
-  const [state, formAction, pending] = useActionState(loginAction, initialState);
+  const [state, formAction, pending] = useActionState(
+    loginAction,
+    initialState,
+  );
 
   return (
     <Card className="mx-auto w-full max-w-md">

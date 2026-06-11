@@ -7,10 +7,7 @@ import { type HTMLAttributes } from 'react';
 
 import { cn } from '@/shared/utils/cn';
 
-export function Card({
-  className,
-  ...props
-}: HTMLAttributes<HTMLDivElement>) {
+export function Card({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
   return (
     <div
       className={cn(
@@ -37,7 +34,10 @@ export function CardTitle({
 }: HTMLAttributes<HTMLHeadingElement>) {
   return (
     <h3
-      className={cn('text-xl font-semibold leading-none tracking-tight', className)}
+      className={cn(
+        'text-xl font-semibold leading-none tracking-tight',
+        className,
+      )}
       {...props}
     />
   );

@@ -13,7 +13,10 @@
 
 import type { AvailabilityDay } from '@/modules/listing/types';
 
-export function useAvailability(_listingId: string, _month?: string): {
+export function useAvailability(
+  _listingId: string,
+  _month?: string,
+): {
   days: AvailabilityDay[];
   isLoading: boolean;
 } {
