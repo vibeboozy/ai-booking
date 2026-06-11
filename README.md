@@ -27,6 +27,7 @@
 4. rules/ — coding_standards, database_rules, security_rules, testing_rules.
 5. dev_plan.xml — если задача привязана к фазе.
 6. src/ANCHORS.md — якорная разметка (ANCHOR, PURPOSE) в каждом файле.
+7. vibe_requirements.md — источник истины по продукту и MVP.
 
 ## Модульная архитектура (КРИТИЧНО)
 
