@@ -12,8 +12,32 @@
 
 export default function HomePage() {
   return (
-    <main>
-      <h1>TripVibe</h1>
+    <main className="container py-16">
+      <section className="mx-auto max-w-2xl text-center">
+        <p className="mb-3 text-sm font-medium uppercase tracking-wider text-primary">
+          Бронирование для поколения Z
+        </p>
+        <h1 className="font-display text-4xl font-bold tracking-tight md:text-5xl">
+          TripVibe
+        </h1>
+        <p className="mt-4 text-lg text-muted-foreground">
+          Скорость, прозрачные цены и UX без трения. Поиск жилья — в Phase 1.
+        </p>
+        <div className="mt-8 flex flex-wrap justify-center gap-3">
+          <a
+            href="/search"
+            className="inline-flex h-10 items-center justify-center rounded-lg bg-primary px-6 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+          >
+            Найти жильё
+          </a>
+          <a
+            href="/login"
+            className="inline-flex h-10 items-center justify-center rounded-lg border border-border px-6 text-sm font-medium hover:bg-muted"
+          >
+            Войти
+          </a>
+        </div>
+      </section>
       {/* TODO: <SearchBar /> */}
     </main>
   );
