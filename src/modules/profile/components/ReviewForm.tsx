@@ -1,13 +1,14 @@
 /**
  * ANCHOR: profile
- * PURPOSE: Форма отзыва: rating select + text.
- * Dependencies: submitReviewAction.
+ * PURPOSE: Форма отзыва: star rating + text.
+ * Dependencies: StarRating, submitReviewAction.
  * CRITICAL: Only accessible for completed booking without existing review.
  */
 
 'use client';
 
 import { useState, useTransition } from 'react';
+import { StarRating } from '@/modules/profile/components/StarRating';
 import { submitReviewAction } from '@/modules/profile/actions/submitReview';
 import { cn } from '@/shared/utils/cn';
 
@@ -73,26 +74,11 @@ export function ReviewForm({ bookingId, listingTitle }: ReviewFormProps) {
 
       {/* Rating */}
       <div>
-        <label htmlFor="rating" className="mb-2 block text-sm font-medium">
-          Оценка
-        </label>
-        <select
-          id="rating"
-          value={rating}
-          onChange={(e) => setRating(Number(e.target.value))}
-          className={cn(
-            'w-full rounded-lg border border-gray-200 bg-white px-4 py-3 text-gray-900',
-            'focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20',
-            'dark:border-gray-700 dark:bg-gray-800 dark:text-white',
-          )}
-        >
-          <option value={0}>Выберите оценку</option>
-          {[5, 4, 3, 2, 1].map((r) => (
-            <option key={r} value={r}>
-              {r} — {ratingLabels[r]}
-            </option>
-          ))}
-        </select>
+        <label className="mb-2 block text-sm font-medium">Оценка</label>
+        <StarRating value={rating} onChange={setRating} size="lg" />
+        {rating > 0 && (
+          <p className="mt-2 text-sm text-gray-500">{ratingLabels[rating]}</p>
+        )}
       </div>
 
       {/* Text */}
