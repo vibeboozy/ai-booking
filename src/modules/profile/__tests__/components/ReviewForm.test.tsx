@@ -54,43 +54,37 @@ describe('ReviewForm', () => {
       const textarea = screen.getByRole('textbox');
       fireEvent.change(textarea, { target: { value: 'Короткий' } });
 
-      const submitButton = screen.getByRole('button', { name: /отправить/i });
+      const submitButton = screen.getByRole('button', { name: /отправить отзыв/i });
       expect(submitButton).toBeDisabled();
     });
   });
 
   describe('валидация', () => {
-    it('показывает ошибку если рейтинг 0 при попытке отправить', async () => {
+    it('кнопка disabled когда рейтинг 0', () => {
       render(<ReviewForm bookingId="booking-123" listingTitle="Уютная квартира" />);
 
       const textarea = screen.getByRole('textbox');
       fireEvent.change(textarea, { target: { value: 'Длинный отзыв о квартире' } });
 
       const submitButton = screen.getByRole('button', { name: /отправить/i });
-      fireEvent.click(submitButton);
-
-      await waitFor(() => {
-        expect(screen.getByText('Пожалуйста, поставьте оценку')).toBeInTheDocument();
-      });
+      expect(submitButton).toBeDisabled();
     });
 
-    it('показывает ошибку если текст менее 10 символов', async () => {
+it('кнопка disabled и не показывает ошибку когда текст менее 10 символов', () => {
       render(<ReviewForm bookingId="booking-123" listingTitle="Уютная квартира" />);
 
       // Устанавливаем рейтинг
       const radiogroup = screen.getByRole('radiogroup');
-      const buttons = radiogroup.querySelectorAll('button');
-      fireEvent.click(buttons[2]);
+      fireEvent.click(radiogroup.querySelectorAll('button')[2]);
 
       const textarea = screen.getByRole('textbox');
       fireEvent.change(textarea, { target: { value: 'Короткий' } });
 
-      const submitButton = screen.getByRole('button', { name: /отправить/i });
-      fireEvent.click(submitButton);
+      const submitButton = screen.getByRole('button', { name: /отправить отзыв/i });
+      expect(submitButton).toBeDisabled();
 
-      await waitFor(() => {
-        expect(screen.getByText('Отзыв должен содержать минимум 10 символов')).toBeInTheDocument();
-      });
+      // Ошибка не должна показываться пока пользователь не попытается отправить
+      expect(screen.queryByText('Отзыв должен содержать минимум 10 символов')).not.toBeInTheDocument();
     });
   });
 

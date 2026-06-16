@@ -5,7 +5,7 @@ import { StarRating } from '@/modules/profile/components/StarRating';
 // Mock cn utility
 vi.mock('@/shared/utils/cn', () => ({
   cn: (...args: (string | undefined)[]) => args.filter(Boolean).join(' '),
-});
+}));
 
 describe('StarRating', () => {
   describe('рендеринг', () => {
