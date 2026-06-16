@@ -30,3 +30,7 @@ test-results/
 # misc
 .DS_Store
 *.pem
+
+# build
+*.tsbuildinfo
+.next/cache/

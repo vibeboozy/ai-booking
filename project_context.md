@@ -24,7 +24,7 @@ TripVibe — современная платформа бронирования 
 | Data fetching | **Server Components** + **TanStack Query** (client) | RSC для начальной загрузки, React Query для интерактива |
 | Database | **PostgreSQL** + **Prisma ORM** | Реляционная модель (users, listings, bookings, reviews) |
 | Auth | **NextAuth.js v5** (Auth.js) | OAuth + credentials, session в JWT/cookie |
-| Maps | **Mapbox GL** / **react-map-gl** | Маркер на карточке объекта |
+| Maps | **OpenStreetMap** (static) | Маркер на карточке объекта, без API-ключа |
 | AI | **Vercel AI SDK** (`ai`, `@ai-sdk/openai`) | ИИ-Консьерж на странице жилья |
 | Validation | **Zod** | Схемы для API, форм, URL-параметров |
 | Testing | **Vitest** + **Playwright** | Unit/integration + E2E критических флоу |
@@ -96,7 +96,9 @@ src/
 DATABASE_URL=
 NEXTAUTH_SECRET=
 NEXTAUTH_URL=
-OPENAI_API_KEY=          # ИИ-Консьерж
+AI_PROVIDER_URL=        # ИИ-Консьерж
+AI_API_KEY=
+AI_MODEL_NAME=
 NEXT_PUBLIC_MAPBOX_TOKEN=
 ```
 

@@ -1,13 +1,31 @@
 /**
  * ANCHOR: shared
- * PURPOSE: Клиент Vercel AI SDK для ИИ-Консьержа (streamText, model config).
+ * PURPOSE: Клиент Vercel AI SDK для ИИ-Консьержа.
  * Dependencies: ai, @ai-sdk/openai, @/lib/env.
- * CRITICAL: maxTokens ограничен; ключ только server-side.
+ * CRITICAL: Custom provider (AI_PROVIDER_URL) — OpenAI-compatible API.
  *
  * DO:
- * - Использовать только в server-side route handlers
+ * - aiProvider — custom provider для route handler (server-side)
  * DONT:
- * - Импортировать в client components
+ * - Не импортировать этот файл напрямую в client components
  */
 
-export {};
+import { createOpenAI } from '@ai-sdk/openai';
+import { streamText } from 'ai';
+import { env } from '@/lib/env';
+
+export const CONCIERGE_MODEL = env.AI_MODEL_NAME ?? 'gpt-4o';
+
+export const aiProvider =
+  env.AI_PROVIDER_URL && env.AI_API_KEY
+    ? createOpenAI({
+        baseURL: env.AI_PROVIDER_URL,
+        apiKey: env.AI_API_KEY,
+      })
+    : null;
+
+export function isCustomProviderConfigured(): boolean {
+  return Boolean(env.AI_PROVIDER_URL && env.AI_API_KEY);
+}
+
+export { streamText };

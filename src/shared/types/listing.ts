@@ -27,5 +27,5 @@ export type ListingPreview = {
 export type HostPreview = {
   id: string;
   name: string;
-  avatarUrl?: string;
+  avatarUrl: string | null;
 };

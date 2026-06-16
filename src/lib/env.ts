@@ -18,8 +18,10 @@ const envSchema = z.object({
   NEXTAUTH_URL: z.string().url().optional(),
   GOOGLE_CLIENT_ID: z.string().optional(),
   GOOGLE_CLIENT_SECRET: z.string().optional(),
-  OPENAI_API_KEY: z.string().optional(),
-  NEXT_PUBLIC_MAPBOX_TOKEN: z.string().optional(),
+  GOOGLE_API_KEY: z.string().optional(),
+  AI_PROVIDER_URL: z.string().url().optional(),
+  AI_API_KEY: z.string().optional(),
+  AI_MODEL_NAME: z.string().min(1).optional(),
 });
 
 export const env = envSchema.parse({
@@ -28,8 +30,10 @@ export const env = envSchema.parse({
   NEXTAUTH_URL: process.env.NEXTAUTH_URL,
   GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
   GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
-  OPENAI_API_KEY: process.env.OPENAI_API_KEY,
-  NEXT_PUBLIC_MAPBOX_TOKEN: process.env.NEXT_PUBLIC_MAPBOX_TOKEN,
+  GOOGLE_API_KEY: process.env.GOOGLE_API_KEY,
+  AI_PROVIDER_URL: process.env.AI_PROVIDER_URL,
+  AI_API_KEY: process.env.AI_API_KEY,
+  AI_MODEL_NAME: process.env.AI_MODEL_NAME,
 });
 
 export const isGoogleOAuthEnabled = Boolean(

@@ -10,16 +10,77 @@
  * - Fetch listing in client-only useEffect without RSC initial data
  */
 
+import { notFound } from 'next/navigation';
+import type { Metadata } from 'next';
+import { getListingById } from '@/modules/listing/listing.repository';
+import { ImageGallery } from '@/modules/listing/components/ImageGallery';
+import { ListingDetails } from '@/modules/listing/components/ListingDetails';
+import { ListingMap } from '@/modules/listing/components/ListingMap';
+import { AvailabilityCalendar } from '@/modules/listing/components/AvailabilityCalendar';
+import { AIConcierge } from '@/modules/listing/components/AIConcierge';
+
 type ListingPageProps = {
   params: Promise<{ id: string }>;
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
 
-export default async function ListingPage(_props: ListingPageProps) {
+export async function generateMetadata({
+  params,
+}: ListingPageProps): Promise<Metadata> {
+  const { id } = await params;
+  const listing = await getListingById(id);
+
+  if (!listing) {
+    return { title: 'Объект не найден' };
+  }
+
+  return {
+    title: `${listing.title} — ${listing.city}, ${listing.country} | TripVibe`,
+    description: listing.description.slice(0, 160),
+    openGraph: {
+      title: listing.title,
+      description: listing.description.slice(0, 160),
+      images: listing.images[0] ? [listing.images[0]] : [],
+    },
+  };
+}
+
+export default async function ListingPage({
+  params,
+  searchParams,
+}: ListingPageProps) {
+  const { id } = await params;
+
+  const search = await searchParams;
+
+  const listing = await getListingById(id);
+
+  if (!listing) {
+    notFound();
+  }
+
+  const checkIn = search.checkIn as string | undefined;
+  const checkOut = search.checkOut as string | undefined;
+
   return (
-    <main>
-      <h1>Объект</h1>
-      {/* TODO: ImageGallery, ListingDetails, ListingMap, AvailabilityCalendar, AIConcierge */}
+    <main className="max-w-6xl mx-auto px-4 py-8 space-y-10">
+      <ImageGallery images={listing.images} title={listing.title} />
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2 space-y-8">
+          <ListingDetails listing={listing} />
+          <ListingMap
+            lat={listing.lat}
+            lng={listing.lng}
+            title={listing.title}
+          />
+        </div>
+
+        <div className="space-y-6">
+          <AvailabilityCalendar listingId={listing.id} mode="view" />
+          <AIConcierge listingId={listing.id} />
+        </div>
+      </div>
     </main>
   );
 }

@@ -6,8 +6,9 @@ import { defineConfig } from 'vitest/config';
 export default defineConfig({
   plugins: [react()],
   test: {
-    environment: 'node',
-    include: ['tests/**/*.test.ts'],
+    environment: 'jsdom',
+    include: ['tests/**/*.test.{ts,tsx}'],
+    setupFiles: ['./tests/setup.ts'],
   },
   resolve: {
     alias: {

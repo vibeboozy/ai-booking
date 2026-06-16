@@ -18,9 +18,7 @@ export async function autocompleteLocations(_q: string): Promise<Location[]> {
   return [];
 }
 
-export async function searchListings(
-  _params: SearchParams,
-): Promise<{
+export async function searchListings(_params: SearchParams): Promise<{
   data: ListingPreview[];
   meta: { total: number; page: number; hasMore: boolean };
 }> {

@@ -123,7 +123,7 @@
     <rule id="COMP-003" severity="warning">
       <title>Mock external dependencies</title>
       <description>
-        Mock: next/navigation (useRouter, useSearchParams), fetch/API calls, Mapbox.
+        Mock: next/navigation (useRouter, useSearchParams), fetch/API calls.
         Do NOT mock the component under test.
       </description>
     </rule>
@@ -300,14 +300,6 @@
       <description>
         Dedicated E2E seed: known listing IDs, user credentials (test@tripvibe.dev / password).
         Document in tests/e2e/README.md.
-      </description>
-    </rule>
-
-    <rule id="MOCK-003" severity="info">
-      <title>Mapbox mock</title>
-      <description>
-        Component tests: mock react-map-gl with div placeholder.
-        E2E: map container visible, marker not required to render tiles.
       </description>
     </rule>
   </section>
