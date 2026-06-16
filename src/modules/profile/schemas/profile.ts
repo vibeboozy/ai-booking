@@ -19,7 +19,7 @@ export type TripsQuery = z.infer<typeof tripsQuerySchema>;
  * Schema for POST /api/favorites body
  */
 export const addFavoriteSchema = z.object({
-  listingId: z.string().min(1, 'listingId обязателен'),
+  listingId: z.string().trim().min(1, 'listingId обязателен'),
 });
 
 export type AddFavoriteInput = z.infer<typeof addFavoriteSchema>;
