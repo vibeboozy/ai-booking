@@ -200,11 +200,7 @@ export function AvailabilityCalendar({
               className={classes}
               onClick={() => {
                 if (isClickable && onDateSelect) {
-                  const today = new Date();
-                  today.setHours(0, 0, 0, 0);
-                  const nextWeek = new Date(today);
-                  nextWeek.setDate(nextWeek.getDate() + 7);
-                  onDateSelect(today, nextWeek);
+                  onDateSelect(date, date);
                 }
               }}
               role={isClickable ? 'button' : undefined}
