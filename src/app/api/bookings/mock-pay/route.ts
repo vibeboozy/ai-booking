@@ -26,7 +26,10 @@ export async function POST(request: Request) {
     const { bookingId } = await request.json();
 
     if (!bookingId) {
-      return NextResponse.json({ error: 'bookingId required' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'bookingId required' },
+        { status: 400 },
+      );
     }
 
     const booking = await confirmBookingPayment(bookingId, userId);

@@ -15,15 +15,21 @@ import { useSearchParams } from 'next/navigation';
 import { useCallback, useMemo, useState } from 'react';
 import type { ListingDetail } from '@/modules/listing/types';
 import type { PriceBreakdown } from '@/modules/booking/types';
+import type { AvailabilityDay } from '@/modules/listing/types';
 import { calculateTotalPrice } from '@/modules/booking/utils/calculateTotalPrice';
+import { toLocalDateString, parseLocalDate } from '@/shared/utils/date';
 
-export function useCheckout(listing: ListingDetail): {
+export function useCheckout(
+  listing: ListingDetail,
+  availabilityDays: AvailabilityDay[] = [],
+): {
   checkIn: Date | null;
   checkOut: Date | null;
   guests: number;
   breakdown: PriceBreakdown | null;
   isSubmitting: boolean;
   pendingCheckIn: Date | null;
+  validationError: string | null;
   setGuests: (guests: number) => void;
   onDateClick: (date: Date) => void;
   clearDates: () => void;
@@ -33,15 +39,43 @@ export function useCheckout(listing: ListingDetail): {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [pendingCheckIn, setPendingCheckIn] = useState<Date | null>(null);
 
-  const parseDate = (param: string | string[] | undefined): Date | null => {
-    if (!param || Array.isArray(param)) return null;
-    const date = new Date(param);
-    return isNaN(date.getTime()) ? null : date;
-  };
+  const checkIn = parseLocalDate(searchParams.get('checkIn') ?? undefined);
+  const checkOut = parseLocalDate(searchParams.get('checkOut') ?? undefined);
+  const rawGuests = parseInt(searchParams.get('guests') ?? '1', 10);
+  const guests =
+    isNaN(rawGuests) || rawGuests < 1 ? 1 : Math.min(rawGuests, 10);
 
-  const checkIn = parseDate(searchParams.get('checkIn'));
-  const checkOut = parseDate(searchParams.get('checkOut'));
-  const guests = parseInt(searchParams.get('guests') ?? '1', 10);
+  const validationError = useMemo(() => {
+    if (rawGuests > 10) {
+      return 'Максимальное количество гостей — 10';
+    }
+
+    if (!checkIn || !checkOut) return null;
+
+    const today = new Date();
+    today.setUTCHours(0, 0, 0, 0);
+
+    if (checkIn < today || checkOut < today) {
+      return 'Выбранные даты уже прошли';
+    }
+
+    if (checkOut <= checkIn) {
+      return 'Дата выезда должна быть позже даты заезда';
+    }
+
+    const bookedDates = new Set(
+      availabilityDays.filter((d) => d.status === 'booked').map((d) => d.date),
+    );
+
+    const checkInStr = toLocalDateString(checkIn);
+    const checkOutStr = toLocalDateString(checkOut);
+
+    if (bookedDates.has(checkInStr) || bookedDates.has(checkOutStr)) {
+      return 'Выбранные даты недоступны для бронирования';
+    }
+
+    return null;
+  }, [rawGuests, checkIn, checkOut, availabilityDays]);
 
   const breakdown = useMemo(() => {
     if (!checkIn || !checkOut) return null;
@@ -54,17 +88,17 @@ export function useCheckout(listing: ListingDetail): {
 
       if (!pendingCheckIn) {
         setPendingCheckIn(date);
-        params.set('checkIn', date.toISOString().split('T')[0]);
+        params.set('checkIn', toLocalDateString(date));
         params.delete('checkOut');
       } else {
         if (date <= pendingCheckIn) {
           setPendingCheckIn(date);
-          params.set('checkIn', date.toISOString().split('T')[0]);
+          params.set('checkIn', toLocalDateString(date));
           params.delete('checkOut');
         } else {
           setPendingCheckIn(null);
-          params.set('checkIn', pendingCheckIn.toISOString().split('T')[0]);
-          params.set('checkOut', date.toISOString().split('T')[0]);
+          params.set('checkIn', toLocalDateString(pendingCheckIn));
+          params.set('checkOut', toLocalDateString(date));
         }
       }
 
@@ -91,7 +125,9 @@ export function useCheckout(listing: ListingDetail): {
   );
 
   const submit = useCallback(async (): Promise<string | null> => {
-    if (!checkIn || !checkOut || !breakdown) return null;
+    if (validationError) return null;
+    if (!checkIn || !checkOut || !breakdown || breakdown.nights <= 0)
+      return null;
 
     setIsSubmitting(true);
     try {
@@ -100,8 +136,8 @@ export function useCheckout(listing: ListingDetail): {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           listingId: listing.id,
-          checkIn: checkIn.toISOString(),
-          checkOut: checkOut.toISOString(),
+          checkIn: toLocalDateString(checkIn),
+          checkOut: toLocalDateString(checkOut),
           guests,
         }),
       });
@@ -114,7 +150,7 @@ export function useCheckout(listing: ListingDetail): {
     } finally {
       setIsSubmitting(false);
     }
-  }, [checkIn, checkOut, guests, listing.id, breakdown]);
+  }, [validationError, checkIn, checkOut, guests, listing.id, breakdown]);
 
   return {
     checkIn,
@@ -123,6 +159,7 @@ export function useCheckout(listing: ListingDetail): {
     breakdown,
     isSubmitting,
     pendingCheckIn,
+    validationError,
     setGuests,
     onDateClick,
     clearDates,

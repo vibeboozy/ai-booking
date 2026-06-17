@@ -27,21 +27,25 @@ export function PriceBreakdown({
   if (breakdown.nights === 0) {
     return (
       <div className="p-4 bg-gray-50 rounded-xl">
-        <p className="text-gray-500 text-sm">Выберите даты для расчёта стоимости</p>
+        <p className="text-gray-500 text-sm">
+          Выберите даты для расчёта стоимости
+        </p>
       </div>
     );
   }
 
   return (
     <div className="p-4 bg-gray-50 rounded-xl space-y-3">
-      {listingTitle && (
-        <h3 className="font-medium text-lg">{listingTitle}</h3>
-      )}
+      {listingTitle && <h3 className="font-medium text-lg">{listingTitle}</h3>}
 
       <div className="flex justify-between text-sm">
         <span>
           {formatPrice(pricePerNight)} × {breakdown.nights}{' '}
-          {breakdown.nights === 1 ? 'ночь' : breakdown.nights < 5 ? 'ночи' : 'ночей'}
+          {breakdown.nights === 1
+            ? 'ночь'
+            : breakdown.nights < 5
+              ? 'ночи'
+              : 'ночей'}
         </span>
         <span>{formatPrice(breakdown.subtotal)}</span>
       </div>

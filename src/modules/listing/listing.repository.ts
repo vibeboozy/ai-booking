@@ -62,20 +62,26 @@ export async function getAvailability(
   month?: string,
 ): Promise<AvailabilityDay[]> {
   const now = new Date();
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const today = new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()),
+  );
 
   const startDate = month
-    ? new Date(`${month}-01`)
-    : new Date(today.getFullYear(), today.getMonth(), 1);
+    ? new Date(
+        Date.UTC(
+          parseInt(month.split('-')[0]),
+          parseInt(month.split('-')[1]) - 1,
+          1,
+        ),
+      )
+    : new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
 
   const endOfMonth = new Date(
-    startDate.getFullYear(),
-    startDate.getMonth() + 1,
-    0,
+    Date.UTC(startDate.getUTCFullYear(), startDate.getUTCMonth() + 1, 0),
   );
   const endDate = month
     ? endOfMonth
-    : new Date(today.getFullYear(), today.getMonth() + 3, 0);
+    : new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 3, 0));
 
   const bookings = await prisma.booking.findMany({
     where: {
@@ -105,7 +111,7 @@ export async function getAvailability(
       if (current >= today) {
         bookedDates.add(current.toISOString().split('T')[0]);
       }
-      current.setDate(current.getDate() + 1);
+      current.setUTCDate(current.getUTCDate() + 1);
     }
   }
 
@@ -124,7 +130,7 @@ export async function getAvailability(
     }
 
     result.push({ date: dateStr, status });
-    current.setDate(current.getDate() + 1);
+    current.setUTCDate(current.getUTCDate() + 1);
   }
 
   return result;

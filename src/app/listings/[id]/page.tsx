@@ -16,8 +16,8 @@ import { getListingById } from '@/modules/listing/listing.repository';
 import { ImageGallery } from '@/modules/listing/components/ImageGallery';
 import { ListingDetails } from '@/modules/listing/components/ListingDetails';
 import { ListingMap } from '@/modules/listing/components/ListingMap';
-import { AvailabilityCalendar } from '@/modules/listing/components/AvailabilityCalendar';
 import { AIConcierge } from '@/modules/listing/components/AIConcierge';
+import { ListingDateSelector } from '@/modules/listing/components/ListingDateSelector';
 
 type ListingPageProps = {
   params: Promise<{ id: string }>;
@@ -45,22 +45,14 @@ export async function generateMetadata({
   };
 }
 
-export default async function ListingPage({
-  params,
-  searchParams,
-}: ListingPageProps) {
+export default async function ListingPage({ params }: ListingPageProps) {
   const { id } = await params;
-
-  const search = await searchParams;
 
   const listing = await getListingById(id);
 
   if (!listing) {
     notFound();
   }
-
-  const checkIn = search.checkIn as string | undefined;
-  const checkOut = search.checkOut as string | undefined;
 
   return (
     <main className="max-w-6xl mx-auto px-4 py-8 space-y-10">
@@ -77,7 +69,7 @@ export default async function ListingPage({
         </div>
 
         <div className="space-y-6">
-          <AvailabilityCalendar listingId={listing.id} mode="view" />
+          <ListingDateSelector listingId={listing.id} />
           <AIConcierge listingId={listing.id} />
         </div>
       </div>

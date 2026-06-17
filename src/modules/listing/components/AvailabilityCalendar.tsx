@@ -9,6 +9,14 @@
  * - onDateSelect callback в select mode
  * DONT:
  * - Менять props interface без согласования Dev C
+ *
+ * Selection logic:
+ * 1. First click → checkIn (pending)
+ * 2. Second click:
+ *    - date > checkIn → checkOut (complete)
+ *    - date < checkIn → swap (date becomes checkIn, old checkIn becomes checkOut)
+ *    - date === checkIn → reset (clear all)
+ * 3. When selection is complete and user clicks → reset to new checkIn
  */
 
 'use client';
@@ -21,7 +29,11 @@ type AvailabilityCalendarProps = {
   listingId: string;
   selectedCheckIn?: Date;
   selectedCheckOut?: Date;
-  onDateSelect?: (checkIn: Date, checkOut: Date) => void;
+  onDateSelect?: (
+    checkIn: Date,
+    checkOut: Date | null,
+    isNewSelection: boolean,
+  ) => void;
   mode?: 'view' | 'select';
 };
 
@@ -41,6 +53,30 @@ const MONTHS = [
   'Декабрь',
 ];
 
+type SelectionState = 'idle' | 'pending' | 'complete';
+
+function deriveInitialState(selectedCheckIn?: Date, selectedCheckOut?: Date) {
+  if (selectedCheckIn && selectedCheckOut) {
+    return {
+      pendingCheckIn: selectedCheckIn,
+      pendingCheckOut: selectedCheckOut,
+      selectionState: 'complete' as SelectionState,
+    };
+  }
+  if (selectedCheckIn) {
+    return {
+      pendingCheckIn: selectedCheckIn,
+      pendingCheckOut: null,
+      selectionState: 'pending' as SelectionState,
+    };
+  }
+  return {
+    pendingCheckIn: null,
+    pendingCheckOut: null,
+    selectionState: 'idle' as SelectionState,
+  };
+}
+
 export function AvailabilityCalendar({
   listingId,
   selectedCheckIn,
@@ -48,16 +84,30 @@ export function AvailabilityCalendar({
   onDateSelect,
   mode = 'view',
 }: AvailabilityCalendarProps) {
-  const [currentDate, setCurrentDate] = useState(() => new Date());
+  const [currentDate, setCurrentDate] = useState(() => {
+    const now = new Date();
+    return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+  });
   const { days, isLoading } = useAvailability(listingId);
 
-  const currentYear = currentDate.getFullYear();
-  const currentMonth = currentDate.getMonth();
+  const initialState = deriveInitialState(selectedCheckIn, selectedCheckOut);
+  const [pendingCheckIn, setPendingCheckIn] = useState<Date | null>(
+    () => initialState.pendingCheckIn,
+  );
+  const [pendingCheckOut, setPendingCheckOut] = useState<Date | null>(
+    () => initialState.pendingCheckOut,
+  );
+  const [selectionState, setSelectionState] = useState<SelectionState>(
+    () => initialState.selectionState,
+  );
+
+  const currentYear = currentDate.getUTCFullYear();
+  const currentMonth = currentDate.getUTCMonth();
 
   const calendarDays = useMemo(() => {
-    const firstDay = new Date(currentYear, currentMonth, 1);
-    const lastDay = new Date(currentYear, currentMonth + 1, 0);
-    const startPadding = firstDay.getDay();
+    const firstDay = new Date(Date.UTC(currentYear, currentMonth, 1));
+    const lastDay = new Date(Date.UTC(currentYear, currentMonth + 1, 0));
+    const startPadding = firstDay.getUTCDay();
 
     const result: (Date | null)[] = [];
 
@@ -65,8 +115,8 @@ export function AvailabilityCalendar({
       result.push(null);
     }
 
-    for (let d = 1; d <= lastDay.getDate(); d++) {
-      result.push(new Date(currentYear, currentMonth, d));
+    for (let d = 1; d <= lastDay.getUTCDate(); d++) {
+      result.push(new Date(Date.UTC(currentYear, currentMonth, d)));
     }
 
     return result;
@@ -82,41 +132,80 @@ export function AvailabilityCalendar({
 
   const prevMonth = () => {
     setCurrentDate(
-      (prev) => new Date(prev.getFullYear(), prev.getMonth() - 1, 1),
+      (prev) =>
+        new Date(Date.UTC(prev.getUTCFullYear(), prev.getUTCMonth() - 1, 1)),
     );
   };
 
   const nextMonth = () => {
     setCurrentDate(
-      (prev) => new Date(prev.getFullYear(), prev.getMonth() + 1, 1),
+      (prev) =>
+        new Date(Date.UTC(prev.getUTCFullYear(), prev.getUTCMonth() + 1, 1)),
     );
   };
 
   const getDateStatus = (date: Date): 'free' | 'booked' | 'past' => {
     const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    today.setUTCHours(0, 0, 0, 0);
     if (date < today) return 'past';
     const key = date.toISOString().split('T')[0];
     return availabilityMap.get(key) ?? 'free';
   };
 
   const isDateSelected = (date: Date): boolean => {
-    if (!selectedCheckIn && !selectedCheckOut) return false;
+    const checkInToUse = pendingCheckIn;
+    const checkOutToUse = pendingCheckOut;
+    if (!checkInToUse && !checkOutToUse) return false;
     const dateStr = date.toISOString().split('T')[0];
-    const checkInStr = selectedCheckIn?.toISOString().split('T')[0];
-    const checkOutStr = selectedCheckOut?.toISOString().split('T')[0];
+    const checkInStr = checkInToUse?.toISOString().split('T')[0];
+    const checkOutStr = checkOutToUse?.toISOString().split('T')[0];
     return dateStr === checkInStr || dateStr === checkOutStr;
   };
 
   const isDateInRange = (date: Date): boolean => {
-    if (!selectedCheckIn || !selectedCheckOut) return false;
+    if (!pendingCheckIn || !pendingCheckOut) return false;
     const time = date.getTime();
-    return (
-      time > selectedCheckIn.getTime() && time < selectedCheckOut.getTime()
-    );
+    return time > pendingCheckIn.getTime() && time < pendingCheckOut.getTime();
   };
 
   const isFree = (date: Date): boolean => getDateStatus(date) === 'free';
+
+  const handleDateClick = (date: Date) => {
+    if (mode !== 'select' || !onDateSelect) return;
+    if (!isFree(date)) return;
+
+    if (selectionState === 'idle') {
+      setPendingCheckIn(date);
+      setPendingCheckOut(null);
+      setSelectionState('pending');
+      onDateSelect(date, null, true);
+    } else if (selectionState === 'pending' && pendingCheckIn) {
+      const clickedTime = date.getTime();
+      const checkInTime = pendingCheckIn.getTime();
+
+      if (clickedTime === checkInTime) {
+        setPendingCheckIn(null);
+        setPendingCheckOut(null);
+        setSelectionState('idle');
+        onDateSelect(date, null, true);
+      } else if (clickedTime > checkInTime) {
+        setPendingCheckIn(pendingCheckIn);
+        setPendingCheckOut(date);
+        setSelectionState('complete');
+        onDateSelect(pendingCheckIn, date, false);
+      } else {
+        setPendingCheckIn(date);
+        setPendingCheckOut(pendingCheckIn);
+        setSelectionState('complete');
+        onDateSelect(date, pendingCheckIn, false);
+      }
+    } else if (selectionState === 'complete') {
+      setPendingCheckIn(date);
+      setPendingCheckOut(null);
+      setSelectionState('pending');
+      onDateSelect(date, null, true);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -198,11 +287,7 @@ export function AvailabilityCalendar({
             <div
               key={date.toISOString()}
               className={classes}
-              onClick={() => {
-                if (isClickable && onDateSelect) {
-                  onDateSelect(date, date);
-                }
-              }}
+              onClick={() => isClickable && handleDateClick(date)}
               role={isClickable ? 'button' : undefined}
               tabIndex={isClickable ? 0 : undefined}
             >

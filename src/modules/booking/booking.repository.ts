@@ -14,20 +14,25 @@ import { prisma } from '@/lib/prisma';
 import type { Booking, BookingCreateInput } from '@/modules/booking/types';
 import { getListingById } from '@/modules/listing/listing.repository';
 import { calculateTotalPrice } from '@/modules/booking/utils/calculateTotalPrice';
+import { parseLocalDateOnly, toLocalDateString } from '@/shared/utils/date';
 
 export async function createBookingRecord(
   userId: string,
   input: BookingCreateInput,
 ): Promise<Booking> {
-  const checkIn = new Date(input.checkIn);
-  const checkOut = new Date(input.checkOut);
+  const checkInDate = parseLocalDateOnly(input.checkIn);
+  const checkOutDate = parseLocalDateOnly(input.checkOut);
 
   const listing = await getListingById(input.listingId);
   if (!listing) {
     throw new Error('Listing not found');
   }
 
-  const priceBreakdown = calculateTotalPrice(listing, checkIn, checkOut);
+  const priceBreakdown = calculateTotalPrice(
+    listing,
+    checkInDate,
+    checkOutDate,
+  );
   if (priceBreakdown.nights <= 0) {
     throw new Error('Invalid dates');
   }
@@ -36,9 +41,7 @@ export async function createBookingRecord(
     where: {
       listingId: input.listingId,
       status: { in: ['CONFIRMED', 'PENDING'] },
-      OR: [
-        { checkIn: { lt: checkOut }, checkOut: { gt: checkIn } },
-      ],
+      OR: [{ checkIn: { lt: checkOutDate }, checkOut: { gt: checkInDate } }],
     },
   });
 
@@ -50,8 +53,8 @@ export async function createBookingRecord(
     data: {
       userId,
       listingId: input.listingId,
-      checkIn,
-      checkOut,
+      checkIn: checkInDate,
+      checkOut: checkOutDate,
       guests: input.guests,
       totalPrice: priceBreakdown.total,
       status: 'PENDING',
@@ -62,8 +65,8 @@ export async function createBookingRecord(
     id: booking.id,
     userId: booking.userId,
     listingId: booking.listingId,
-    checkIn: booking.checkIn.toISOString(),
-    checkOut: booking.checkOut.toISOString(),
+    checkIn: toLocalDateString(booking.checkIn),
+    checkOut: toLocalDateString(booking.checkOut),
     guests: booking.guests,
     totalPrice: booking.totalPrice,
     status: 'pending',
@@ -84,11 +87,55 @@ export async function confirmBookingPayment(
     id: booking.id,
     userId: booking.userId,
     listingId: booking.listingId,
-    checkIn: booking.checkIn.toISOString(),
-    checkOut: booking.checkOut.toISOString(),
+    checkIn: toLocalDateString(booking.checkIn),
+    checkOut: toLocalDateString(booking.checkOut),
     guests: booking.guests,
     totalPrice: booking.totalPrice,
     status: 'confirmed',
     createdAt: booking.createdAt.toISOString(),
+  };
+}
+
+export type BookingWithListing = Booking & {
+  listing: {
+    id: string;
+    title: string;
+    city: string;
+    country: string;
+    images: string[];
+  };
+};
+
+export async function getBookingById(
+  bookingId: string,
+): Promise<BookingWithListing | null> {
+  const booking = await prisma.booking.findUnique({
+    where: { id: bookingId },
+    include: {
+      listing: {
+        select: {
+          id: true,
+          title: true,
+          city: true,
+          country: true,
+          images: true,
+        },
+      },
+    },
+  });
+
+  if (!booking) return null;
+
+  return {
+    id: booking.id,
+    userId: booking.userId,
+    listingId: booking.listingId,
+    checkIn: toLocalDateString(booking.checkIn),
+    checkOut: toLocalDateString(booking.checkOut),
+    guests: booking.guests,
+    totalPrice: booking.totalPrice,
+    status: booking.status.toLowerCase() as Booking['status'],
+    createdAt: booking.createdAt.toISOString(),
+    listing: booking.listing,
   };
 }

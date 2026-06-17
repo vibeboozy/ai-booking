@@ -5,6 +5,7 @@
  *
  * DO:
  * - staleTime config для кэша
+ * - refetchOnMount для актуальных данных после бронирования
  * DONT:
  * - Fetch availability в Server Component и prop-drill глубоко
  */
@@ -34,7 +35,9 @@ export function useAvailability(
       const { data } = await res.json();
       return data as AvailabilityDay[];
     },
-    staleTime: 5 * 60 * 1000,
+    staleTime: 0,
+    refetchOnMount: 'always',
+    gcTime: 0,
     retry: 1,
   });
 

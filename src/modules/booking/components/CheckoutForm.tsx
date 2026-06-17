@@ -1,23 +1,24 @@
 /**
  * ANCHOR: booking
  * PURPOSE: Форма чекаут: даты, гости, summary listing, CTA «Забронировать».
- * Dependencies: AvailabilityCalendar, PriceBreakdown, MockPaymentButton, useCheckout.
+ * Dependencies: DateDisplay, PriceBreakdown, MockPaymentButton, useCheckout.
  * CRITICAL: Все сборы видны до оплаты; auth required.
  *
  * DO:
- * - Reuse AvailabilityCalendar mode="select"
+ * - Use DateDisplay for date selection
  * DONT:
  * - Скрытые комиссии в UI
  */
 
 'use client';
 
-import { useState } from 'react';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
+import { AlertCircle } from 'lucide-react';
 import type { ListingDetail } from '@/modules/listing/types';
-import { AvailabilityCalendar } from '@/modules/listing/components/AvailabilityCalendar';
+import { useAvailability } from '@/modules/listing/hooks/useAvailability';
+import { DateDisplay } from '@/modules/booking/components/DateDisplay';
 import { PriceBreakdown } from '@/modules/booking/components/PriceBreakdown';
-import { MockPaymentButton } from '@/modules/booking/components/MockPaymentButton';
 import { useCheckout } from '@/modules/booking/hooks/useCheckout';
 import { formatPrice } from '@/shared/utils/formatPrice';
 
@@ -26,24 +27,21 @@ type CheckoutFormProps = {
 };
 
 export function CheckoutForm({ listing }: CheckoutFormProps) {
-  const [bookingId, setBookingId] = useState<string | null>(null);
+  const router = useRouter();
+  const { days } = useAvailability(listing.id);
   const {
-    checkIn,
-    checkOut,
     guests,
     breakdown,
-    pendingCheckIn,
-    onDateClick,
-    clearDates,
+    validationError,
     setGuests,
     submit,
     isSubmitting,
-  } = useCheckout(listing);
+  } = useCheckout(listing, days);
 
   const handleConfirm = async () => {
     const id = await submit();
     if (id) {
-      setBookingId(id);
+      router.push(`/booking-success/${id}`);
     }
   };
 
@@ -79,42 +77,23 @@ export function CheckoutForm({ listing }: CheckoutFormProps) {
                     : 'Комната'}
               </p>
               <p className="text-sm mt-1">
-                <span className="font-medium">{formatPrice(listing.pricePerNight)}</span> за ночь
+                <span className="font-medium">
+                  {formatPrice(listing.pricePerNight)}
+                </span>{' '}
+                за ночь
               </p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl border p-4">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold">Выберите даты</h2>
-            {pendingCheckIn && (
-              <button
-                onClick={clearDates}
-                className="text-sm text-blue-600 hover:underline"
-              >
-                Отменить выбор
-              </button>
-            )}
+        <DateDisplay listingId={listing.id} />
+
+        {validationError && (
+          <div className="flex items-start gap-2 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+            <AlertCircle size={16} className="mt-0.5 flex-shrink-0" />
+            <span>{validationError}</span>
           </div>
-          {pendingCheckIn && (
-            <p className="text-sm text-blue-600 mb-3">
-              Выберите дату выезда
-            </p>
-          )}
-          <AvailabilityCalendar
-            listingId={listing.id}
-            selectedCheckIn={checkIn ?? undefined}
-            selectedCheckOut={checkOut ?? undefined}
-            onDateSelect={(date) => onDateClick(date)}
-            mode="select"
-          />
-          {checkIn && checkOut && (
-            <p className="text-sm text-gray-600 mt-3">
-              {checkIn.toLocaleDateString('ru-RU')} — {checkOut.toLocaleDateString('ru-RU')}
-            </p>
-          )}
-        </div>
+        )}
 
         <div className="bg-white rounded-xl border p-4">
           <h2 className="text-xl font-semibold mb-4">Количество гостей</h2>
@@ -141,15 +120,21 @@ export function CheckoutForm({ listing }: CheckoutFormProps) {
 
       <div className="space-y-4">
         <PriceBreakdown
-          breakdown={breakdown ?? { nights: 0, subtotal: 0, cleaningFee: 0, serviceFee: 0, total: 0 }}
+          breakdown={
+            breakdown ?? {
+              nights: 0,
+              subtotal: 0,
+              cleaningFee: 0,
+              serviceFee: 0,
+              total: 0,
+            }
+          }
           pricePerNight={listing.pricePerNight}
           listingTitle={listing.title}
         />
 
-        {breakdown && breakdown.nights > 0 && (
-          bookingId ? (
-            <MockPaymentButton bookingId={bookingId} disabled={isSubmitting} />
-          ) : (
+        {breakdown && breakdown.nights > 0 && !validationError && (
+          <>
             <button
               onClick={handleConfirm}
               disabled={isSubmitting}
@@ -157,12 +142,11 @@ export function CheckoutForm({ listing }: CheckoutFormProps) {
             >
               {isSubmitting ? 'Обработка...' : 'Подтвердить бронирование'}
             </button>
-          )
+            <p className="text-xs text-gray-500 text-center">
+              Нажимая кнопку, вы принимаете правила отмены бронирования
+            </p>
+          </>
         )}
-
-        <p className="text-xs text-gray-500 text-center">
-          Нажимая кнопку, вы принимаете правила отмены бронирования
-        </p>
       </div>
     </div>
   );

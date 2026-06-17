@@ -22,3 +22,4 @@ export {
 export { Footer } from '@/shared/ui/footer';
 export { Header } from '@/shared/ui/header';
 export { LoginForm } from '@/shared/ui/login-form';
+export { Modal } from '@/shared/ui/modal';
