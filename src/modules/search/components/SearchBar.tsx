@@ -1,7 +1,7 @@
 /**
  * ANCHOR: search
  * PURPOSE: Главная форма поиска: город, даты, гости, кнопка «Найти».
- * Dependencies: LocationAutocomplete, @/shared/utils/buildSearchUrl, next/navigation.
+ * Dependencies: LocationAutocomplete, DateRangePicker, @/shared/utils/buildSearchUrl, next/navigation.
  * CRITICAL: Submit → navigate to /search с URL params; без useState для фильтров.
  *
  * DO:
@@ -15,9 +15,9 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/shared/ui/button';
-import { Input } from '@/shared/ui/input';
 import { Label } from '@/shared/ui/label';
 import { LocationAutocomplete } from './LocationAutocomplete';
+import { DateRangePicker } from './DateRangePicker';
 import { buildSearchUrl } from '@/shared/utils/buildSearchUrl';
 import type { Location } from '@/modules/search/types';
 
@@ -149,31 +149,6 @@ export function SearchBar({ className }: SearchBarProps) {
     setCity(location.name);
   };
 
-  const handleCheckInChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newCheckIn = e.target.value;
-    console.log(
-      '[search][SearchBar][SEARCH_BAR_COMPONENT][DECISION]',
-      { checkIn: newCheckIn, reason: 'checkIn changed' },
-    );
-    setCheckIn(newCheckIn);
-
-    if (checkOut && new Date(newCheckIn) >= new Date(checkOut)) {
-      const nextDay = new Date(newCheckIn);
-      nextDay.setDate(nextDay.getDate() + 1);
-      setCheckOut(nextDay.toISOString().split('T')[0]);
-    }
-  };
-
-  const handleCheckOutChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newCheckOut = e.target.value;
-    console.log(
-      '[search][SearchBar][SEARCH_BAR_COMPONENT][DECISION]',
-      { checkOut: newCheckOut, reason: 'checkOut changed' },
-    );
-    setCheckOut(newCheckOut);
-    validateDates();
-  };
-
   console.log('[search][SearchBar][SEARCH_BAR_COMPONENT][EXIT]', { city, checkIn, checkOut, guests });
 
   return (
@@ -198,34 +173,24 @@ export function SearchBar({ className }: SearchBarProps) {
           </div>
 
           <div className="flex flex-1 flex-col border-b border-r-0 p-2 md:border-b-0 md:border-r md:px-2">
-            <Label htmlFor="checkin-input" className="mb-1 block text-xs font-medium text-muted-foreground">
-              Заезд
+            <Label className="mb-1 block text-xs font-medium text-muted-foreground">
+              Даты
             </Label>
-            <Input
-              id="checkin-input"
-              type="date"
-              name="checkIn"
-              value={checkIn}
-              onChange={handleCheckInChange}
-              min={new Date().toISOString().split('T')[0]}
-              className="border-0 p-0 shadow-none focus-visible:ring-0"
-              aria-describedby={dateError ? 'date-error' : undefined}
-            />
-          </div>
-
-          <div className="flex flex-1 flex-col border-b border-r-0 p-2 md:border-b-0 md:border-r md:px-2">
-            <Label htmlFor="checkout-input" className="mb-1 block text-xs font-medium text-muted-foreground">
-              Выезд
-            </Label>
-            <Input
-              id="checkout-input"
-              type="date"
-              name="checkOut"
-              value={checkOut}
-              onChange={handleCheckOutChange}
-              min={checkIn || new Date().toISOString().split('T')[0]}
-              className="border-0 p-0 shadow-none focus-visible:ring-0"
-              aria-describedby={dateError ? 'date-error' : undefined}
+            <DateRangePicker
+              checkIn={checkIn}
+              checkOut={checkOut}
+              onSelect={(range) => {
+                console.log('[search][SearchBar][SEARCH_BAR_COMPONENT][DECISION]', {
+                  action: 'dates selected from DateRangePicker',
+                  range,
+                });
+                if (range.checkIn) setCheckIn(range.checkIn);
+                if (range.checkOut) {
+                  setCheckOut(range.checkOut);
+                } else {
+                  setCheckOut('');
+                }
+              }}
             />
           </div>
 
@@ -269,12 +234,6 @@ export function SearchBar({ className }: SearchBarProps) {
             </Button>
           </div>
         </div>
-
-        {dateError && (
-          <p id="date-error" className="mt-2 text-sm text-destructive" role="alert">
-            {dateError}
-          </p>
-        )}
       </form>
 
       <div className="mt-2 text-xs text-muted-foreground">
@@ -289,4 +248,5 @@ export function SearchBar({ className }: SearchBarProps) {
     </div>
   );
 }
+
 // [END_SEARCH_BAR_COMPONENT]

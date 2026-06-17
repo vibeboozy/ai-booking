@@ -36,7 +36,7 @@ import { ListingCard } from '@/modules/search/components/ListingCard';
 import { Pagination } from '@/modules/search/components/Pagination';
 import type { ListingPreview } from '@/shared/types/listing';
 import { Suspense } from 'react';
-import { SearchPageLoading } from './loading';
+import SearchPageLoading from './loading';
 import SearchResultsLoading from './SearchResultsLoading';
 
 function SearchResultsCount({ total }: { total: number }) {

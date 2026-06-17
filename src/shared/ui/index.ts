@@ -25,3 +25,5 @@ export { LoginForm } from '@/shared/ui/login-form';
 export { PriceSlider } from '@/components/ui/slider';
 export { Checkbox } from '@/components/ui/checkbox';
 export { Sheet } from '@/components/ui/sheet';
+export { Calendar } from '@/components/ui/calendar';
+export { Popover, PopoverTrigger, PopoverContent, PopoverAnchor } from '@/components/ui/popover';
