@@ -11,6 +11,10 @@ import { PropertyTypeToggles } from './PropertyTypeToggles';
 import { AmenitiesCheckboxes } from './AmenitiesCheckboxes';
 import { ActiveFilterBadges } from './ActiveFilterBadges';
 import type { PropertyType } from '@/shared/types/listing';
+import {
+  PRICE_SLIDER_MAX,
+  PRICE_SLIDER_MIN,
+} from '@/modules/search/constants/searchFilters';
 
 function countActiveFilters(params: {
   priceMin?: number;
@@ -19,8 +23,13 @@ function countActiveFilters(params: {
   amenities?: string[];
 }): number {
   let count = 0;
-  if (params.priceMin !== undefined) count++;
-  if (params.priceMax !== undefined) count++;
+
+  const priceMin = params.priceMin ?? PRICE_SLIDER_MIN;
+  const priceMax = params.priceMax ?? PRICE_SLIDER_MAX;
+  const isPriceFiltered = priceMin !== PRICE_SLIDER_MIN || priceMax !== PRICE_SLIDER_MAX;
+
+  if (isPriceFiltered) count++;
+
   if (params.propertyType !== undefined) count++;
   if (params.amenities?.length) count += params.amenities.length;
   return count;
@@ -44,8 +53,6 @@ export function FiltersContent({
 
   return (
     <div className="space-y-6">
-      <ActiveFilterBadges count={activeCount} onReset={resetFilters} />
-
       <FilterSection title="Цена">
         <PriceSliderSection
           priceMin={params.priceMin}
@@ -69,6 +76,8 @@ export function FiltersContent({
           onChange={(amenities) => setParams({ amenities })}
         />
       </FilterSection>
+
+      <ActiveFilterBadges count={activeCount} onReset={resetFilters} />
     </div>
   );
 }

@@ -25,12 +25,6 @@ export async function Header() {
         </Link>
 
         <nav className="hidden items-center gap-6 text-sm font-medium md:flex">
-          <Link
-            href="/search"
-            className="text-muted-foreground transition-colors hover:text-foreground"
-          >
-            Поиск
-          </Link>
           {session?.user && (
             <Link
               href="/profile"

@@ -47,6 +47,7 @@ export function LocationAutocomplete({
   const listboxRef = useRef<HTMLUListElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const justSelectedRef = useRef(false);
 
   const fetchLocations = useCallback(
     async (query: string) => {
@@ -122,6 +123,11 @@ export function LocationAutocomplete({
     }
 
     debounceTimerRef.current = setTimeout(async () => {
+      if (justSelectedRef.current) {
+        justSelectedRef.current = false;
+        return;
+      }
+
       setIsLoading(true);
       console.log(
         '[search][LocationAutocomplete][LOCATION_AUTOCOMPLETE_INPUT][DECISION]',
@@ -195,6 +201,9 @@ export function LocationAutocomplete({
     onSelect(location);
     setIsOpen(false);
     setResults([]);
+
+    debounceTimerRef.current = null;
+    justSelectedRef.current = true;
   };
 
   const handleFocus = () => {

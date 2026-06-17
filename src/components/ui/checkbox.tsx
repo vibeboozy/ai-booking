@@ -7,8 +7,8 @@
 'use client';
 
 import * as React from 'react';
-
 import { cn } from '@/shared/utils/cn';
+import { Check } from 'lucide-react';
 
 export interface CheckboxProps {
   id?: string;
@@ -27,8 +27,16 @@ export function Checkbox({
   disabled = false,
   className,
 }: CheckboxProps) {
+  const [isChecked, setIsChecked] = React.useState(checked);
+
+  React.useEffect(() => {
+    setIsChecked(checked);
+  }, [checked]);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    onCheckedChange?.(e.target.checked);
+    const newValue = e.target.checked;
+    setIsChecked(newValue);
+    onCheckedChange?.(newValue);
   };
 
   return (
@@ -43,20 +51,23 @@ export function Checkbox({
         <input
           type="checkbox"
           id={id}
-          checked={checked}
+          checked={isChecked}
           onChange={handleChange}
           disabled={disabled}
-          className="peer sr-only"
+          className="sr-only"
         />
-        <div className="flex h-5 w-5 items-center justify-center rounded border border-input bg-background ring-offset-background transition-colors peer-checked:border-primary peer-checked:bg-primary peer-checked:text-primary-foreground peer-focus-visible:outline-none peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
-          <svg
-            className="h-4 w-4 fill-none stroke-current stroke-2 opacity-0 peer-checked:opacity-100"
-            viewBox="0 0 24 24"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <polyline points="20 6 9 17 4 12" />
-          </svg>
+        <div
+          className={cn(
+            'flex h-5 w-5 items-center justify-center rounded border border-input bg-background ring-offset-background transition-colors',
+            isChecked && 'border-primary bg-primary',
+            !isChecked && 'bg-background',
+            'peer-focus-visible:outline-none peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2',
+            disabled && 'cursor-not-allowed opacity-50'
+          )}
+        >
+          {isChecked && (
+            <Check className="h-4 w-4 text-white" strokeWidth={2} />
+          )}
         </div>
       </div>
       {label}

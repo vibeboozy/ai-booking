@@ -41,13 +41,8 @@ export function PriceSliderSection({
     console.log('[search][SearchFilters][PRICE_CHANGE][EXIT]');
   };
 
-  const isFullRange = localValue[0] === PRICE_SLIDER_MIN && localValue[1] === PRICE_SLIDER_MAX;
-
   return (
     <div>
-      {isFullRange && (
-        <p className="text-sm text-muted-foreground mb-2">Любая цена</p>
-      )}
       <PriceSlider
         min={PRICE_SLIDER_MIN}
         max={PRICE_SLIDER_MAX}
