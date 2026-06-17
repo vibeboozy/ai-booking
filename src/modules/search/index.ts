@@ -15,3 +15,8 @@ export { SearchFilters } from '@/modules/search/components/SearchFilters';
 export { ListingCard } from '@/modules/search/components/ListingCard';
 export { useSearchFilters } from '@/modules/search/hooks/useSearchFilters';
 export type { Location } from '@/modules/search/types';
+export {
+  PRICE_SLIDER_MIN,
+  PRICE_SLIDER_MAX,
+  PRICE_SLIDER_STEP,
+} from '@/modules/search/constants/searchFilters';
