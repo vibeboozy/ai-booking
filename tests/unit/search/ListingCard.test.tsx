@@ -12,6 +12,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, cleanup } from '@testing-library/react';
 import { useSearchParams } from 'next/navigation';
 import type { ListingPreview } from '@/shared/types/listing';
+import type { ReadonlyURLSearchParams } from 'next/navigation';
 
 import { ListingCard } from '@/modules/search/components/ListingCard';
 
@@ -35,17 +36,9 @@ describe('LISTING_CARD', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.spyOn(console, 'log').mockImplementation(() => {});
-    vi.mocked(useSearchParams).mockReturnValue({
-      get: vi.fn(),
-      getAll: vi.fn(),
-      has: vi.fn(),
-      entries: vi.fn().mockReturnValue([]),
-      keys: vi.fn().mockReturnValue([]),
-      values: vi.fn().mockReturnValue([]),
-      toString: vi.fn().mockReturnValue(''),
-      forEach: vi.fn(),
-      size: 0,
-    });
+    vi.mocked(useSearchParams).mockReturnValue(
+      new URLSearchParams() as unknown as ReadonlyURLSearchParams,
+    );
   });
 
   afterEach(() => {
@@ -54,7 +47,8 @@ describe('LISTING_CARD', () => {
   });
 
   const getLogCalls = (): unknown[][] => {
-    return (console.log as unknown as { mock: { calls: unknown[][] } }).mock.calls;
+    return (console.log as unknown as { mock: { calls: unknown[][] } }).mock
+      .calls;
   };
 
   describe('SC-FEAT-007-001: ListingCard рендерит изображение', () => {
@@ -92,21 +86,18 @@ describe('LISTING_CARD', () => {
     });
 
     it('should preserve search params in link', () => {
-      vi.mocked(useSearchParams).mockReturnValue({
-        get: vi.fn(),
-        getAll: vi.fn(),
-        has: vi.fn(),
-        entries: vi.fn().mockReturnValue([['city', 'Москва']]),
-        keys: vi.fn().mockReturnValue(['city']),
-        values: vi.fn().mockReturnValue(['Москва']),
-        toString: vi.fn().mockReturnValue('city=Москва'),
-        forEach: vi.fn(),
-        size: 1,
-      });
+      vi.mocked(useSearchParams).mockReturnValue(
+        new URLSearchParams({
+          city: 'Москва',
+        }) as unknown as ReadonlyURLSearchParams,
+      );
 
       const { unmount } = render(<ListingCard listing={mockListing} />);
       const link = screen.getByTestId('listing-card');
-      expect(link).toHaveAttribute('href', '/listings/clx123abc?city=Москва');
+      expect(link).toHaveAttribute(
+        'href',
+        '/listings/clx123abc?city=%D0%9C%D0%BE%D1%81%D0%BA%D0%B2%D0%B0',
+      );
       unmount();
     });
   });
@@ -157,7 +148,9 @@ describe('LISTING_CARD', () => {
       const hasDecisionLog = logCalls.some(
         (call) =>
           typeof call[0] === 'string' &&
-          call[0].includes('[search][ListingCard][LISTING_CARD][DECISION][images-empty]'),
+          call[0].includes(
+            '[search][ListingCard][LISTING_CARD][DECISION][images-empty]',
+          ),
       );
       expect(hasDecisionLog).toBe(true);
       unmount();
@@ -172,14 +165,20 @@ describe('LISTING_CARD', () => {
     });
 
     it('should display "Дом" for house type', () => {
-      const houseListing: ListingPreview = { ...mockListing, propertyType: 'house' };
+      const houseListing: ListingPreview = {
+        ...mockListing,
+        propertyType: 'house',
+      };
       const { unmount } = render(<ListingCard listing={houseListing} />);
       expect(screen.getAllByText('Дом')[0]).toBeInTheDocument();
       unmount();
     });
 
     it('should display "Комната" for room type', () => {
-      const roomListing: ListingPreview = { ...mockListing, propertyType: 'room' };
+      const roomListing: ListingPreview = {
+        ...mockListing,
+        propertyType: 'room',
+      };
       const { unmount } = render(<ListingCard listing={roomListing} />);
       expect(screen.getAllByText('Комната')[0]).toBeInTheDocument();
       unmount();
@@ -196,7 +195,10 @@ describe('LISTING_CARD', () => {
     });
 
     it('should not display rating when averageRating is 0', () => {
-      const noRatingListing: ListingPreview = { ...mockListing, averageRating: 0 };
+      const noRatingListing: ListingPreview = {
+        ...mockListing,
+        averageRating: 0,
+      };
       const { unmount } = render(<ListingCard listing={noRatingListing} />);
       expect(screen.queryByText('★')).not.toBeInTheDocument();
       unmount();
@@ -206,7 +208,9 @@ describe('LISTING_CARD', () => {
   describe('Title and location display', () => {
     it('should display listing title', () => {
       const { unmount } = render(<ListingCard listing={mockListing} />);
-      expect(screen.getAllByRole('heading', { level: 3 })[0]).toBeInTheDocument();
+      expect(
+        screen.getAllByRole('heading', { level: 3 })[0],
+      ).toBeInTheDocument();
       unmount();
     });
 

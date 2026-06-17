@@ -62,7 +62,7 @@ export function Checkbox({
             isChecked && 'border-primary bg-primary',
             !isChecked && 'bg-background',
             'peer-focus-visible:outline-none peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2',
-            disabled && 'cursor-not-allowed opacity-50'
+            disabled && 'cursor-not-allowed opacity-50',
           )}
         >
           {isChecked && (

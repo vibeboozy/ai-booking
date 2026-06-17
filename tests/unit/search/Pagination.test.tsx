@@ -10,6 +10,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useRouter, useSearchParams } from 'next/navigation';
+import type { ReadonlyURLSearchParams } from 'next/navigation';
 
 import { Pagination } from '@/modules/search/components/Pagination';
 
@@ -27,17 +28,8 @@ const createMockRouter = () => ({
   prefetch: vi.fn(),
 });
 
-const createMockSearchParams = (params: Record<string, string> = {}) => ({
-  get: vi.fn((key: string) => params[key] ?? null),
-  getAll: vi.fn(),
-  has: vi.fn((key: string) => key in params),
-  entries: vi.fn(() => Object.entries(params)),
-  keys: vi.fn(() => Object.keys(params)),
-  values: vi.fn(() => Object.values(params)),
-  toString: vi.fn(() => new URLSearchParams(params).toString()),
-  forEach: vi.fn(),
-  size: Object.keys(params).length,
-});
+const createMockSearchParams = (params: Record<string, string> = {}) =>
+  new URLSearchParams(params) as unknown as ReadonlyURLSearchParams;
 
 describe('PAGINATION', () => {
   let mockRouter: ReturnType<typeof createMockRouter>;
@@ -45,7 +37,9 @@ describe('PAGINATION', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockRouter = createMockRouter();
-    vi.mocked(useRouter).mockReturnValue(mockRouter as ReturnType<typeof useRouter>);
+    vi.mocked(useRouter).mockReturnValue(
+      mockRouter as ReturnType<typeof useRouter>,
+    );
     vi.spyOn(console, 'log').mockImplementation(() => {});
   });
 
@@ -55,7 +49,8 @@ describe('PAGINATION', () => {
   });
 
   const getLogCalls = (): unknown[][] => {
-    return (console.log as unknown as { mock: { calls: unknown[][] } }).mock.calls;
+    return (console.log as unknown as { mock: { calls: unknown[][] } }).mock
+      .calls;
   };
 
   describe('SC-FEAT-007-006: Pagination скрыт когда hasMore: false', () => {
@@ -86,8 +81,12 @@ describe('PAGINATION', () => {
       vi.mocked(useSearchParams).mockReturnValue(createMockSearchParams());
       const meta = { total: 30, page: 2, hasMore: true };
       render(<Pagination meta={meta} />);
-      expect(screen.getByRole('button', { name: /предыдущая/i })).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: /следующая/i })).toBeInTheDocument();
+      expect(
+        screen.getByRole('button', { name: /предыдущая/i }),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole('button', { name: /следующая/i }),
+      ).toBeInTheDocument();
     });
 
     it('should render page 1 button', () => {
@@ -122,7 +121,9 @@ describe('PAGINATION', () => {
     });
 
     it('should navigate to previous page when clicking Prev', async () => {
-      vi.mocked(useSearchParams).mockReturnValue(createMockSearchParams({ page: '3' }));
+      vi.mocked(useSearchParams).mockReturnValue(
+        createMockSearchParams({ page: '3' }),
+      );
       const meta = { total: 50, page: 3, hasMore: true };
       render(<Pagination meta={meta} />);
 
@@ -171,7 +172,9 @@ describe('PAGINATION', () => {
       const hasDecisionLog = logCalls.some(
         (call) =>
           typeof call[0] === 'string' &&
-          call[0].includes('[search][Pagination][PAGINATION][DECISION][visible-check]'),
+          call[0].includes(
+            '[search][Pagination][PAGINATION][DECISION][visible-check]',
+          ),
       );
       expect(hasDecisionLog).toBe(true);
     });
@@ -188,7 +191,9 @@ describe('PAGINATION', () => {
       const hasPageChangeLog = logCalls.some(
         (call) =>
           typeof call[0] === 'string' &&
-          call[0].includes('[search][Pagination][PAGINATION][DECISION][page-change]'),
+          call[0].includes(
+            '[search][Pagination][PAGINATION][DECISION][page-change]',
+          ),
       );
       expect(hasPageChangeLog).toBe(true);
     });
@@ -239,7 +244,12 @@ describe('PAGINATION', () => {
 
     it('should preserve all search params including checkIn and checkOut', async () => {
       vi.mocked(useSearchParams).mockReturnValue(
-        createMockSearchParams({ city: 'Сочи', checkIn: '2026-07-01', checkOut: '2026-07-08', guests: '3' }),
+        createMockSearchParams({
+          city: 'Сочи',
+          checkIn: '2026-07-01',
+          checkOut: '2026-07-08',
+          guests: '3',
+        }),
       );
       const meta = { total: 50, page: 1, hasMore: true };
       render(<Pagination meta={meta} />);

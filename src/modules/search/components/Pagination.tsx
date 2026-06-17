@@ -76,7 +76,7 @@ export function Pagination({ meta }: PaginationProps) {
       const newUrl = buildSearchUrl({ ...currentParams, page }, '/search');
       router.push(newUrl);
     },
-    [router, meta.page, currentParams]
+    [router, meta.page, currentParams],
   );
 
   const totalPages = Math.ceil(meta.total / 20);
@@ -140,7 +140,10 @@ export function Pagination({ meta }: PaginationProps) {
       <div className="flex items-center gap-1">
         {pageNumbers.map((page, index) =>
           page === 'ellipsis' ? (
-            <span key={`ellipsis-${index}`} className="px-2 py-2 text-muted-foreground">
+            <span
+              key={`ellipsis-${index}`}
+              className="px-2 py-2 text-muted-foreground"
+            >
               ...
             </span>
           ) : (
@@ -156,7 +159,7 @@ export function Pagination({ meta }: PaginationProps) {
             >
               {page}
             </button>
-          )
+          ),
         )}
       </div>
 

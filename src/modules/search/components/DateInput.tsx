@@ -19,7 +19,11 @@ import * as React from 'react';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { CalendarDays } from 'lucide-react';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/shared/utils/cn';
 
@@ -90,13 +94,20 @@ export function DateInput({
           )}
           aria-label={placeholder}
         >
-          <span className={displayValue ? 'text-foreground' : 'text-muted-foreground'}>
+          <span
+            className={
+              displayValue ? 'text-foreground' : 'text-muted-foreground'
+            }
+          >
             {displayValue || placeholder}
           </span>
           <CalendarDays className="h-4 w-4 opacity-50" />
         </button>
       </PopoverTrigger>
-      <PopoverContent className="w-auto bg-background p-0 border rounded-lg shadow-lg" align="start">
+      <PopoverContent
+        className="w-auto bg-background p-0 border rounded-lg shadow-lg"
+        align="start"
+      >
         <div className="p-2 bg-background">
           <Calendar
             mode="single"

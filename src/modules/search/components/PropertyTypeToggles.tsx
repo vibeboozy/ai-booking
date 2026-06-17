@@ -5,7 +5,10 @@
 
 'use client';
 
-import { PROPERTY_TYPES, PROPERTY_TYPE_LABELS } from '@/shared/constants/propertyTypes';
+import {
+  PROPERTY_TYPES,
+  PROPERTY_TYPE_LABELS,
+} from '@/shared/constants/propertyTypes';
 import type { PropertyType } from '@/shared/types/listing';
 
 export function PropertyTypeToggles({
@@ -22,10 +25,13 @@ export function PropertyTypeToggles({
           key={type}
           type="button"
           onClick={() => {
-            console.log('[search][SearchFilters][PROPERTY_TYPE_TOGGLE][DECISION]', {
-              current: selected,
-              clicked: type,
-            });
+            console.log(
+              '[search][SearchFilters][PROPERTY_TYPE_TOGGLE][DECISION]',
+              {
+                current: selected,
+                clicked: type,
+              },
+            );
             if (selected === type) {
               onChange(undefined);
             } else {

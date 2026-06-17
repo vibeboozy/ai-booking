@@ -49,66 +49,64 @@ export function LocationAutocomplete({
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const justSelectedRef = useRef(false);
 
-  const fetchLocations = useCallback(
-    async (query: string) => {
+  const fetchLocations = useCallback(async (query: string) => {
+    console.log(
+      '[search][LocationAutocomplete][LOCATION_AUTOCOMPLETE_INPUT][DECISION]',
+      { query, reason: 'fetchLocations called' },
+    );
+
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
       console.log(
         '[search][LocationAutocomplete][LOCATION_AUTOCOMPLETE_INPUT][DECISION]',
-        { query, reason: 'fetchLocations called' },
+        { reason: 'aborted previous request' },
+      );
+    }
+
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
+    try {
+      const res = await fetch(
+        `/api/locations/autocomplete?q=${encodeURIComponent(query)}&limit=${API_LIMIT}`,
+        { signal: controller.signal },
       );
 
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-        console.log(
-          '[search][LocationAutocomplete][LOCATION_AUTOCOMPLETE_INPUT][DECISION]',
-          { reason: 'aborted previous request' },
-        );
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}`);
       }
 
-      const controller = new AbortController();
-      abortControllerRef.current = controller;
+      const { data } = (await res.json()) as { data: Location[] };
+      console.log(
+        '[search][LocationAutocomplete][LOCATION_AUTOCOMPLETE_INPUT][EXIT]',
+        { result: 'success', count: data.length },
+      );
 
-      try {
-        const res = await fetch(
-          `/api/locations/autocomplete?q=${encodeURIComponent(query)}&limit=${API_LIMIT}`,
-          { signal: controller.signal },
-        );
-
-        if (!res.ok) {
-          throw new Error(`HTTP ${res.status}`);
-        }
-
-        const { data } = (await res.json()) as { data: Location[] };
+      return data;
+    } catch (error) {
+      if ((error as Error).name === 'AbortError') {
         console.log(
-          '[search][LocationAutocomplete][LOCATION_AUTOCOMPLETE_INPUT][EXIT]',
-          { result: 'success', count: data.length },
-        );
-
-        return data;
-      } catch (error) {
-        if ((error as Error).name === 'AbortError') {
-          console.log(
-            '[search][LocationAutocomplete][LOCATION_AUTOCOMPLETE_INPUT][DECISION]',
-            { reason: 'request aborted' },
-          );
-          return null;
-        }
-
-        console.error(
-          '[search][LocationAutocomplete][LOCATION_AUTOCOMPLETE_INPUT][ERROR]',
-          { error: (error as Error).message },
+          '[search][LocationAutocomplete][LOCATION_AUTOCOMPLETE_INPUT][DECISION]',
+          { reason: 'request aborted' },
         );
         return null;
       }
-    },
-    [],
-  );
+
+      console.error(
+        '[search][LocationAutocomplete][LOCATION_AUTOCOMPLETE_INPUT][ERROR]',
+        { error: (error as Error).message },
+      );
+      return null;
+    }
+  }, []);
 
   useEffect(() => {
     console.log(
       '[search][LocationAutocomplete][LOCATION_AUTOCOMPLETE_INPUT][DECISION]',
       {
         valueLength: value.length,
-        reason: value.length >= MIN_CHARS ? 'value length >= 2' : 'value too short',
+        reason:
+          value.length >= MIN_CHARS ? 'value length >= 2' : 'value too short',
       },
     );
 
@@ -254,7 +252,9 @@ export function LocationAutocomplete({
           {isLoading ? (
             <li className="px-4 py-2 text-muted-foreground">Загрузка...</li>
           ) : results.length === 0 ? (
-            <li className="px-4 py-2 text-muted-foreground">Ничего не найдено</li>
+            <li className="px-4 py-2 text-muted-foreground">
+              Ничего не найдено
+            </li>
           ) : (
             results.map((location, index) => (
               <li
@@ -263,19 +263,21 @@ export function LocationAutocomplete({
                 role="option"
                 aria-selected={index === highlightedIndex}
                 className={`cursor-pointer px-4 py-2 ${
-                  index === highlightedIndex
-                    ? 'bg-muted'
-                    : 'hover:bg-muted'
+                  index === highlightedIndex ? 'bg-muted' : 'hover:bg-muted'
                 }`}
                 onClick={() => handleSelect(location)}
                 onMouseEnter={() => setHighlightedIndex(index)}
               >
                 <span className="font-medium">{location.name}</span>
                 {location.type === 'city' && (
-                  <span className="ml-1 text-xs text-muted-foreground">город</span>
+                  <span className="ml-1 text-xs text-muted-foreground">
+                    город
+                  </span>
                 )}
                 {location.type === 'country' && (
-                  <span className="ml-1 text-xs text-muted-foreground">страна</span>
+                  <span className="ml-1 text-xs text-muted-foreground">
+                    страна
+                  </span>
                 )}
               </li>
             ))

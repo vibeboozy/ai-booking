@@ -47,7 +47,13 @@ export function DateRangePicker({
 
   const handleCheckInSelect = (date: string) => {
     setError('');
-    if (checkOut && !isRangeValid(new Date(date + 'T00:00:00'), new Date(checkOut + 'T00:00:00'))) {
+    if (
+      checkOut &&
+      !isRangeValid(
+        new Date(date + 'T00:00:00'),
+        new Date(checkOut + 'T00:00:00'),
+      )
+    ) {
       onSelect({ checkIn: date, checkOut: '' });
     } else {
       onSelect({ checkIn: date, checkOut });
@@ -56,7 +62,13 @@ export function DateRangePicker({
 
   const handleCheckOutSelect = (date: string) => {
     setError('');
-    if (checkIn && !isRangeValid(new Date(checkIn + 'T00:00:00'), new Date(date + 'T00:00:00'))) {
+    if (
+      checkIn &&
+      !isRangeValid(
+        new Date(checkIn + 'T00:00:00'),
+        new Date(date + 'T00:00:00'),
+      )
+    ) {
       setError('Дата выезда должна быть позже даты заезда');
       return;
     }

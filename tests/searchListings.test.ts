@@ -4,7 +4,10 @@
  */
 
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
-import { searchListings, buildWhereClause } from '@/modules/search/search.repository';
+import {
+  searchListings,
+  buildWhereClause,
+} from '@/modules/search/search.repository';
 
 vi.mock('@/lib/prisma', () => ({
   prisma: {
@@ -72,7 +75,7 @@ describe('searchListings', () => {
 
     expect(result.meta.page).toBe(2);
     expect(prisma.listing.findMany).toHaveBeenCalledWith(
-      expect.objectContaining({ skip: 20 })
+      expect.objectContaining({ skip: 20 }),
     );
   });
 
@@ -88,7 +91,7 @@ describe('searchListings', () => {
         averageRating: 4.5,
         reviewCount: 10,
         propertyType: 'APARTMENT',
-      })
+      }),
     );
     vi.mocked(prisma.listing.count).mockResolvedValue(100);
 
@@ -96,7 +99,7 @@ describe('searchListings', () => {
 
     expect(result.data.length).toBeLessThanOrEqual(20);
     expect(prisma.listing.findMany).toHaveBeenCalledWith(
-      expect.objectContaining({ take: 20 })
+      expect.objectContaining({ take: 20 }),
     );
   });
 
@@ -112,7 +115,7 @@ describe('searchListings', () => {
         averageRating: 4.5,
         reviewCount: 10,
         propertyType: 'APARTMENT',
-      })
+      }),
     );
     vi.mocked(prisma.listing.count).mockResolvedValue(100);
 
@@ -133,7 +136,7 @@ describe('searchListings', () => {
         averageRating: 4.5,
         reviewCount: 10,
         propertyType: 'APARTMENT',
-      })
+      }),
     );
     vi.mocked(prisma.listing.count).mockResolvedValue(25);
 

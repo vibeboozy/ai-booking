@@ -18,10 +18,5 @@ export function Calendar({
 }: React.ComponentProps<typeof DayPicker>) {
   console.log('[shared][Calendar][SHARED_CALENDAR][ENTRY]', { className });
 
-  return (
-    <DayPicker
-      className={cn('p-3', className)}
-      {...props}
-    />
-  );
+  return <DayPicker className={cn('p-3', className)} {...props} />;
 }

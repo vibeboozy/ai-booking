@@ -15,7 +15,10 @@ import type { LocationType, Prisma } from '@prisma/client';
 import type { SearchParams } from '@/shared/schemas/searchParams';
 import type { ListingPreview, PropertyType } from '@/shared/types/listing';
 import type { Location } from '@/modules/search/types';
-import { AUTOCOMPLETE_MIN_CHARS, AUTOCOMPLETE_DEFAULT_LIMIT } from './constants/searchFilters';
+import {
+  AUTOCOMPLETE_MIN_CHARS,
+  AUTOCOMPLETE_DEFAULT_LIMIT,
+} from './constants/searchFilters';
 
 const PRISMA_LOCATION_TYPE_MAP: Record<LocationType, 'city' | 'country'> = {
   CITY: 'city',
@@ -37,9 +40,12 @@ function logLine(
   function_name: string,
   anchor: string,
   point: 'ENTRY' | 'EXIT' | 'CHECK' | 'DECISION' | 'ERROR',
-  data?: Record<string, unknown>
+  data?: Record<string, unknown>,
 ): void {
-  console.log(`[${module}][${function_name}][${anchor}][${point}]`, JSON.stringify(data ?? {}));
+  console.log(
+    `[${module}][${function_name}][${anchor}][${point}]`,
+    JSON.stringify(data ?? {}),
+  );
 }
 
 interface AutocompleteOptions {
@@ -70,25 +76,43 @@ interface AutocompleteOptions {
  */
 export async function autocompleteLocations(
   q: string,
-  options: AutocompleteOptions = {}
+  options: AutocompleteOptions = {},
 ): Promise<Location[]> {
-  logLine('search', 'autocompleteLocations', 'AUTOCOMPLETE_LOCATIONS_REPO', 'ENTRY', {
-    q,
-    q_length: q.length,
-    limit: options.limit ?? AUTOCOMPLETE_DEFAULT_LIMIT,
-  });
+  logLine(
+    'search',
+    'autocompleteLocations',
+    'AUTOCOMPLETE_LOCATIONS_REPO',
+    'ENTRY',
+    {
+      q,
+      q_length: q.length,
+      limit: options.limit ?? AUTOCOMPLETE_DEFAULT_LIMIT,
+    },
+  );
 
   const limit = options.limit ?? AUTOCOMPLETE_DEFAULT_LIMIT;
 
   if (q.length > 0 && q.length < AUTOCOMPLETE_MIN_CHARS) {
-    logLine('search', 'autocompleteLocations', 'AUTOCOMPLETE_LOCATIONS_REPO', 'DECISION', {
-      decision: 'return_empty_for_short_query',
-      q_length: q.length,
-    });
-    logLine('search', 'autocompleteLocations', 'AUTOCOMPLETE_LOCATIONS_REPO', 'EXIT', {
-      result: 'empty_array',
-      reason: 'query_too_short',
-    });
+    logLine(
+      'search',
+      'autocompleteLocations',
+      'AUTOCOMPLETE_LOCATIONS_REPO',
+      'DECISION',
+      {
+        decision: 'return_empty_for_short_query',
+        q_length: q.length,
+      },
+    );
+    logLine(
+      'search',
+      'autocompleteLocations',
+      'AUTOCOMPLETE_LOCATIONS_REPO',
+      'EXIT',
+      {
+        result: 'empty_array',
+        reason: 'query_too_short',
+      },
+    );
     return [];
   }
 
@@ -102,21 +126,40 @@ export async function autocompleteLocations(
   }>;
 
   if (q.length === 0) {
-    logLine('search', 'autocompleteLocations', 'AUTOCOMPLETE_LOCATIONS_REPO', 'CHECK', {
-      check: 'empty_query',
-      result: true,
-    });
+    logLine(
+      'search',
+      'autocompleteLocations',
+      'AUTOCOMPLETE_LOCATIONS_REPO',
+      'CHECK',
+      {
+        check: 'empty_query',
+        result: true,
+      },
+    );
     dbLocations = await prisma.location.findMany({
       take: limit,
       orderBy: [{ type: 'asc' }, { name: 'asc' }],
-      select: { id: true, name: true, type: true, slug: true, lat: true, lng: true },
+      select: {
+        id: true,
+        name: true,
+        type: true,
+        slug: true,
+        lat: true,
+        lng: true,
+      },
     });
   } else {
-    logLine('search', 'autocompleteLocations', 'AUTOCOMPLETE_LOCATIONS_REPO', 'CHECK', {
-      check: 'search_query',
-      result: true,
-      q,
-    });
+    logLine(
+      'search',
+      'autocompleteLocations',
+      'AUTOCOMPLETE_LOCATIONS_REPO',
+      'CHECK',
+      {
+        check: 'search_query',
+        result: true,
+        q,
+      },
+    );
     dbLocations = await prisma.location.findMany({
       where: {
         name: {
@@ -126,7 +169,14 @@ export async function autocompleteLocations(
       },
       take: limit,
       orderBy: [{ type: 'asc' }, { name: 'asc' }],
-      select: { id: true, name: true, type: true, slug: true, lat: true, lng: true },
+      select: {
+        id: true,
+        name: true,
+        type: true,
+        slug: true,
+        lat: true,
+        lng: true,
+      },
     });
   }
 
@@ -139,10 +189,16 @@ export async function autocompleteLocations(
     lng: loc.lng ?? undefined,
   }));
 
-  logLine('search', 'autocompleteLocations', 'AUTOCOMPLETE_LOCATIONS_REPO', 'EXIT', {
-    result: 'success',
-    locations_count: locations.length,
-  });
+  logLine(
+    'search',
+    'autocompleteLocations',
+    'AUTOCOMPLETE_LOCATIONS_REPO',
+    'EXIT',
+    {
+      result: 'success',
+      locations_count: locations.length,
+    },
+  );
 
   return locations;
 }
@@ -173,7 +229,9 @@ export async function autocompleteLocations(
  * - Нельзя добавлять фильтры по отсутствующим в SearchParams полям
  * - Нельзя менять mode: 'insensitive' на чувствительный к регистру поиск
  */
-export function buildWhereClause(params: SearchParams): Prisma.ListingWhereInput {
+export function buildWhereClause(
+  params: SearchParams,
+): Prisma.ListingWhereInput {
   logLine('search', 'buildWhereClause', 'BUILD_WHERE_CLAUSE', 'ENTRY', {
     hasParams: Object.keys(params).length > 0,
     params_keys: Object.keys(params),
@@ -217,7 +275,10 @@ export function buildWhereClause(params: SearchParams): Prisma.ListingWhereInput
       check: 'property_type_filter',
       propertyType: params.propertyType,
     });
-    where.propertyType = params.propertyType.toUpperCase() as 'APARTMENT' | 'HOUSE' | 'ROOM';
+    where.propertyType = params.propertyType.toUpperCase() as
+      | 'APARTMENT'
+      | 'HOUSE'
+      | 'ROOM';
   }
 
   if (params.amenities && params.amenities.length > 0) {
@@ -279,9 +340,7 @@ const LISTING_PREVIEW_SELECT = {
 const PAGE_SIZE_DEFAULT = 20;
 const PAGE_SIZE_MAX = 50;
 
-export async function searchListings(
-  params: SearchParams,
-): Promise<{
+export async function searchListings(params: SearchParams): Promise<{
   data: ListingPreview[];
   meta: { total: number; page: number; hasMore: boolean };
 }> {
@@ -315,10 +374,7 @@ export async function searchListings(
       select: LISTING_PREVIEW_SELECT,
       take,
       skip,
-      orderBy: [
-        { averageRating: 'desc' },
-        { reviewCount: 'desc' },
-      ],
+      orderBy: [{ averageRating: 'desc' }, { reviewCount: 'desc' }],
     }),
     prisma.listing.count({ where }),
   ]);
@@ -331,7 +387,9 @@ export async function searchListings(
 
   const data: ListingPreview[] = listings.map((listing) => ({
     ...listing,
-    propertyType: PROPERTY_TYPE_MAP[listing.propertyType] ?? listing.propertyType.toLowerCase() as PropertyType,
+    propertyType:
+      PROPERTY_TYPE_MAP[listing.propertyType] ??
+      (listing.propertyType.toLowerCase() as PropertyType),
   }));
 
   const result = {

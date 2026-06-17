@@ -73,7 +73,10 @@ export function ListingCard({ listing }: ListingCardProps) {
       data-testid="listing-card"
       className="group block overflow-hidden rounded-t-xl bg-card transition-shadow hover:shadow-lg"
     >
-      <div className="relative overflow-hidden bg-muted" style={{ aspectRatio: '16/9' }}>
+      <div
+        className="relative overflow-hidden bg-muted"
+        style={{ aspectRatio: '16/9' }}
+      >
         {imageSrc ? (
           <Image
             src={imageSrc}
@@ -97,12 +100,18 @@ export function ListingCard({ listing }: ListingCardProps) {
 
       <div className="p-4">
         <div className="mb-1 flex items-start justify-between gap-2">
-          <h3 className="line-clamp-1 font-semibold text-foreground">{listing.title}</h3>
+          <h3 className="line-clamp-1 font-semibold text-foreground">
+            {listing.title}
+          </h3>
           {listing.averageRating > 0 && (
             <div className="flex items-center gap-1 text-sm">
               <span className="text-amber-500">★</span>
-              <span className="font-medium">{listing.averageRating.toFixed(1)}</span>
-              <span className="text-muted-foreground">({listing.reviewCount})</span>
+              <span className="font-medium">
+                {listing.averageRating.toFixed(1)}
+              </span>
+              <span className="text-muted-foreground">
+                ({listing.reviewCount})
+              </span>
             </div>
           )}
         </div>
@@ -111,7 +120,10 @@ export function ListingCard({ listing }: ListingCardProps) {
 
         <p className="text-lg font-bold text-foreground">
           {formatPrice(listing.pricePerNight)}
-          <span className="text-sm font-normal text-muted-foreground"> / ночь</span>
+          <span className="text-sm font-normal text-muted-foreground">
+            {' '}
+            / ночь
+          </span>
         </p>
       </div>
     </Link>

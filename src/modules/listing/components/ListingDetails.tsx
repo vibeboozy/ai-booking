@@ -13,6 +13,7 @@ import Image from 'next/image';
 import { User, Wifi, Car, Utensils } from 'lucide-react';
 import type { ListingDetail } from '@/modules/listing/types';
 import { formatPrice } from '@/shared/utils/formatPrice';
+import { AMENITY_LABELS, isAmenity } from '@/shared/constants/amenities';
 
 type ListingDetailsProps = {
   listing: ListingDetail;
@@ -83,7 +84,7 @@ export function ListingDetails({ listing }: ListingDetailsProps) {
               className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 rounded-full text-sm"
             >
               {AMENITY_ICONS[amenity] ?? null}
-              {amenity}
+              {isAmenity(amenity) && AMENITY_LABELS[amenity]}
             </span>
           ))}
         </div>

@@ -7,8 +7,9 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('FEAT-008: DateRangePicker в SearchBar', () => {
-
-  test('SC-FEAT008-020: E2E: Выбор дат через календарь в SearchBar', async ({ page }) => {
+  test('SC-FEAT008-020: E2E: Выбор дат через календарь в SearchBar', async ({
+    page,
+  }) => {
     await page.goto('/');
 
     const searchBar = page.locator('form');
@@ -37,7 +38,9 @@ test.describe('FEAT-008: DateRangePicker в SearchBar', () => {
     await expect(page).toHaveURL(/\/search\?checkIn=.*/);
   });
 
-  test('SC-FEAT008-022: E2E: Ручной ввод даты в формате ДД.ММ.ГГГГ', async ({ page }) => {
+  test('SC-FEAT008-022: E2E: Ручной ввод даты в формате ДД.ММ.ГГГГ', async ({
+    page,
+  }) => {
     await page.goto('/');
 
     const dateTrigger = page.getByLabel('Выберите даты');
@@ -65,5 +68,4 @@ test.describe('FEAT-008: DateRangePicker в SearchBar', () => {
     const errorMsg = page.getByText('Неверный формат даты');
     await expect(errorMsg).toBeVisible();
   });
-
 });

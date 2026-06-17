@@ -19,7 +19,9 @@ vi.mock('next/navigation', () => ({
 describe('USE_SEARCH_FILTERS_HOOK', () => {
   const mockPush = vi.fn();
 
-  const createMockSearchParams = (initialParams: Record<string, string> = {}) => {
+  const createMockSearchParams = (
+    initialParams: Record<string, string> = {},
+  ) => {
     const params = new URLSearchParams(initialParams);
     return params;
   };
@@ -92,7 +94,9 @@ describe('USE_SEARCH_FILTERS_HOOK', () => {
 
       await vi.advanceTimersByTimeAsync(300);
 
-      expect(mockPush).toHaveBeenCalledWith('/search?city=sochi&priceMax=5000000');
+      expect(mockPush).toHaveBeenCalledWith(
+        '/search?city=sochi&priceMax=5000000',
+      );
     });
 
     it('should update URL immediately for non-price filters', async () => {
@@ -103,7 +107,9 @@ describe('USE_SEARCH_FILTERS_HOOK', () => {
 
       result.current.setParams({ propertyType: 'apartment' });
 
-      expect(mockPush).toHaveBeenCalledWith('/search?city=sochi&propertyType=apartment');
+      expect(mockPush).toHaveBeenCalledWith(
+        '/search?city=sochi&propertyType=apartment',
+      );
     });
 
     it('should only call router.push once for rapid price updates', async () => {
@@ -176,7 +182,9 @@ describe('USE_SEARCH_FILTERS_HOOK', () => {
 describe('LOG_MARKERS', () => {
   const mockPush = vi.fn();
 
-  const createMockSearchParams = (initialParams: Record<string, string> = {}) => {
+  const createMockSearchParams = (
+    initialParams: Record<string, string> = {},
+  ) => {
     const params = new URLSearchParams(initialParams);
     return params;
   };
@@ -188,7 +196,8 @@ describe('LOG_MARKERS', () => {
   });
 
   const getLogCalls = (): unknown[][] => {
-    return (console.log as unknown as { mock: { calls: unknown[][] } }).mock.calls;
+    return (console.log as unknown as { mock: { calls: unknown[][] } }).mock
+      .calls;
   };
 
   afterEach(() => {
@@ -204,11 +213,19 @@ describe('LOG_MARKERS', () => {
     expect(result.current).toBeDefined();
 
     const logCalls = getLogCalls();
-    const hasEntryLog = logCalls.some((call) =>
-      typeof call[0] === 'string' && call[0].includes('[search][useSearchFilters][USE_SEARCH_FILTERS_HOOK][ENTRY]'),
+    const hasEntryLog = logCalls.some(
+      (call) =>
+        typeof call[0] === 'string' &&
+        call[0].includes(
+          '[search][useSearchFilters][USE_SEARCH_FILTERS_HOOK][ENTRY]',
+        ),
     );
-    const hasExitLog = logCalls.some((call) =>
-      typeof call[0] === 'string' && call[0].includes('[search][useSearchFilters][USE_SEARCH_FILTERS_HOOK][EXIT]'),
+    const hasExitLog = logCalls.some(
+      (call) =>
+        typeof call[0] === 'string' &&
+        call[0].includes(
+          '[search][useSearchFilters][USE_SEARCH_FILTERS_HOOK][EXIT]',
+        ),
     );
 
     expect(hasEntryLog).toBe(true);
@@ -226,8 +243,12 @@ describe('LOG_MARKERS', () => {
     result.current.setParams({ priceMax: 5000000 });
 
     const logCalls = getLogCalls();
-    const hasDebounceLog = logCalls.some((call) =>
-      typeof call[0] === 'string' && call[0].includes('[search][useSearchFilters][USE_SEARCH_FILTERS_HOOK][DEBOUNCE]'),
+    const hasDebounceLog = logCalls.some(
+      (call) =>
+        typeof call[0] === 'string' &&
+        call[0].includes(
+          '[search][useSearchFilters][USE_SEARCH_FILTERS_HOOK][DEBOUNCE]',
+        ),
     );
 
     expect(hasDebounceLog).toBe(true);
@@ -242,11 +263,19 @@ describe('LOG_MARKERS', () => {
     result.current.resetFilters();
 
     const logCalls = getLogCalls();
-    const hasResetFiltersEntry = logCalls.some((call) =>
-      typeof call[0] === 'string' && call[0].includes('[search][useSearchFilters][USE_SEARCH_FILTERS_HOOK][RESET_FILTERS][ENTRY]'),
+    const hasResetFiltersEntry = logCalls.some(
+      (call) =>
+        typeof call[0] === 'string' &&
+        call[0].includes(
+          '[search][useSearchFilters][USE_SEARCH_FILTERS_HOOK][RESET_FILTERS][ENTRY]',
+        ),
     );
-    const hasResetFiltersExit = logCalls.some((call) =>
-      typeof call[0] === 'string' && call[0].includes('[search][useSearchFilters][USE_SEARCH_FILTERS_HOOK][RESET_FILTERS][EXIT]'),
+    const hasResetFiltersExit = logCalls.some(
+      (call) =>
+        typeof call[0] === 'string' &&
+        call[0].includes(
+          '[search][useSearchFilters][USE_SEARCH_FILTERS_HOOK][RESET_FILTERS][EXIT]',
+        ),
     );
 
     expect(hasResetFiltersEntry).toBe(true);

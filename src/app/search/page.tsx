@@ -41,13 +41,13 @@ import SearchResultsLoading from './SearchResultsLoading';
 
 function SearchResultsCount({ total }: { total: number }) {
   return (
-    <p className="text-muted-foreground mb-4">
-      Найдено {total} вариантов
-    </p>
+    <p className="text-muted-foreground mb-4">Найдено {total} вариантов</p>
   );
 }
 
-async function SearchResultsList(props: { filters: Awaited<ReturnType<typeof parseSearchParams>> }) {
+async function SearchResultsList(props: {
+  filters: Awaited<ReturnType<typeof parseSearchParams>>;
+}) {
   const result = await searchListings(props.filters);
 
   console.log('[search][SearchResultsList][SEARCH_PAGE_LAYOUT][EXIT]', {
@@ -79,14 +79,18 @@ type SearchPageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
 
-export async function generateMetadata(_props: SearchPageProps): Promise<Metadata> {
+export async function generateMetadata(
+  _props: SearchPageProps,
+): Promise<Metadata> {
   return {
     title: 'Поиск жилья — TripVibe',
     description: 'Найдите идеальное жильё для вашего путешествия',
   };
 }
 
-function SearchResults(props: { params: Awaited<SearchPageProps['searchParams']> }) {
+function SearchResults(props: {
+  params: Awaited<SearchPageProps['searchParams']>;
+}) {
   console.log('[search][SearchResults][SEARCH_PAGE_LAYOUT][ENTRY]', {
     params: props.params,
   });

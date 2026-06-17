@@ -38,7 +38,15 @@ import type { ListingPreview } from '@/shared/types/listing';
 
 export async function GET(
   request: Request,
-): Promise<NextResponse<{ data: ListingPreview[]; meta: { total: number; page: number; hasMore: boolean } } | { error: string }>> {
+): Promise<
+  NextResponse<
+    | {
+        data: ListingPreview[];
+        meta: { total: number; page: number; hasMore: boolean };
+      }
+    | { error: string }
+  >
+> {
   console.log('[search][GET][LISTINGS_SEARCH_API][ENTRY]', {
     url: request.url,
   });

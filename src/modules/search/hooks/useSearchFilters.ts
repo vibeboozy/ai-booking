@@ -45,7 +45,9 @@ export function useSearchFilters(): {
   const searchParams = useSearchParams();
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  const params = parseSearchParams(searchParams.toString() ? Object.fromEntries(searchParams.entries()) : {});
+  const params = parseSearchParams(
+    searchParams.toString() ? Object.fromEntries(searchParams.entries()) : {},
+  );
 
   console.log('[search][useSearchFilters][USE_SEARCH_FILTERS_HOOK][EXIT]', {
     result: 'params parsed',
@@ -53,13 +55,19 @@ export function useSearchFilters(): {
   });
 
   const clearParams = useCallback(() => {
-    console.log('[search][useSearchFilters][USE_SEARCH_FILTERS_HOOK][CLEAR_PARAMS][ENTRY]');
+    console.log(
+      '[search][useSearchFilters][USE_SEARCH_FILTERS_HOOK][CLEAR_PARAMS][ENTRY]',
+    );
     router.push('/search');
-    console.log('[search][useSearchFilters][USE_SEARCH_FILTERS_HOOK][CLEAR_PARAMS][EXIT]');
+    console.log(
+      '[search][useSearchFilters][USE_SEARCH_FILTERS_HOOK][CLEAR_PARAMS][EXIT]',
+    );
   }, [router]);
 
   const resetFilters = useCallback(() => {
-    console.log('[search][useSearchFilters][USE_SEARCH_FILTERS_HOOK][RESET_FILTERS][ENTRY]');
+    console.log(
+      '[search][useSearchFilters][USE_SEARCH_FILTERS_HOOK][RESET_FILTERS][ENTRY]',
+    );
 
     const { city, guests, ...filtersToReset } = params;
 
@@ -74,17 +82,23 @@ export function useSearchFilters(): {
     const url = buildSearchUrl(resetParams);
     router.push(url);
 
-    console.log('[search][useSearchFilters][USE_SEARCH_FILTERS_HOOK][RESET_FILTERS][EXIT]', {
-      preserved: { city, guests },
-      removed: filtersToReset,
-    });
+    console.log(
+      '[search][useSearchFilters][USE_SEARCH_FILTERS_HOOK][RESET_FILTERS][EXIT]',
+      {
+        preserved: { city, guests },
+        removed: filtersToReset,
+      },
+    );
   }, [params, router]);
 
   const setParams = useCallback(
     (partial: Partial<SearchParams>) => {
-      console.log('[search][useSearchFilters][USE_SEARCH_FILTERS_HOOK][SET_PARAMS][ENTRY]', {
-        partial,
-      });
+      console.log(
+        '[search][useSearchFilters][USE_SEARCH_FILTERS_HOOK][SET_PARAMS][ENTRY]',
+        {
+          partial,
+        },
+      );
 
       const newParams: Partial<SearchParams> = { ...params, ...partial };
 
@@ -97,10 +111,13 @@ export function useSearchFilters(): {
       );
 
       if (isPriceUpdate) {
-        console.log('[search][useSearchFilters][USE_SEARCH_FILTERS_HOOK][DEBOUNCE]', {
-          reason: 'price update',
-          delayMs: DEBOUNCE_DELAY_MS,
-        });
+        console.log(
+          '[search][useSearchFilters][USE_SEARCH_FILTERS_HOOK][DEBOUNCE]',
+          {
+            reason: 'price update',
+            delayMs: DEBOUNCE_DELAY_MS,
+          },
+        );
 
         if (debounceTimerRef.current) {
           clearTimeout(debounceTimerRef.current);
@@ -109,17 +126,23 @@ export function useSearchFilters(): {
         debounceTimerRef.current = setTimeout(() => {
           const url = buildSearchUrl(newParams);
           router.push(url);
-          console.log('[search][useSearchFilters][USE_SEARCH_FILTERS_HOOK][DEBOUNCE][EXIT]', {
-            url,
-          });
+          console.log(
+            '[search][useSearchFilters][USE_SEARCH_FILTERS_HOOK][DEBOUNCE][EXIT]',
+            {
+              url,
+            },
+          );
         }, DEBOUNCE_DELAY_MS);
       } else {
         const url = buildSearchUrl(newParams);
         router.push(url);
-        console.log('[search][useSearchFilters][USE_SEARCH_FILTERS_HOOK][SET_PARAMS][EXIT]', {
-          url,
-          isPriceUpdate: false,
-        });
+        console.log(
+          '[search][useSearchFilters][USE_SEARCH_FILTERS_HOOK][SET_PARAMS][EXIT]',
+          {
+            url,
+            isPriceUpdate: false,
+          },
+        );
       }
     },
     [params, router],

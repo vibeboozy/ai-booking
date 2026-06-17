@@ -26,7 +26,8 @@ function countActiveFilters(params: {
 
   const priceMin = params.priceMin ?? PRICE_SLIDER_MIN;
   const priceMax = params.priceMax ?? PRICE_SLIDER_MAX;
-  const isPriceFiltered = priceMin !== PRICE_SLIDER_MIN || priceMax !== PRICE_SLIDER_MAX;
+  const isPriceFiltered =
+    priceMin !== PRICE_SLIDER_MIN || priceMax !== PRICE_SLIDER_MAX;
 
   if (isPriceFiltered) count++;
 

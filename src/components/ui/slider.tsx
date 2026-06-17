@@ -40,7 +40,9 @@ export function PriceSlider({
     setLocalValue(value);
   }, [value]);
 
-  const getPercentFromEvent = (e: React.MouseEvent | React.TouchEvent): number => {
+  const getPercentFromEvent = (
+    e: React.MouseEvent | React.TouchEvent,
+  ): number => {
     if (!trackRef.current) return 0;
     const rect = trackRef.current.getBoundingClientRect();
     const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
