@@ -4,6 +4,8 @@
 @tailwind components;
 @tailwind utilities;
 
+@import "react-day-picker/style.css";
+
 @layer base {
   :root {
     --background: 240 20% 99%;
@@ -29,5 +31,46 @@
 
   body {
     @apply bg-background text-foreground;
+  }
+
+  .rdp {
+    --rdp-cell-size: 36px;
+    --rdp-accent-color: hsl(262 83% 58%);
+    --rdp-background-color: hsl(262 83% 58% / 0.1);
+    margin: 0;
+  }
+
+  .rdp-day_selected:not(.rdp-day_range_middle) {
+    background-color: hsl(262 83% 58%);
+    color: white;
+  }
+
+  .rdp-day_selected:hover:not(.rdp-day_range_middle) {
+    background-color: hsl(262 83% 52%);
+  }
+
+  .rdp-day_range_middle {
+    background-color: hsl(262 83% 58% / 0.15);
+    color: hsl(240 10% 10%);
+  }
+
+  .rdp-day:hover:not(.rdp-day_selected):not(.rdp-day_disabled) {
+    background-color: hsl(240 10% 96%);
+  }
+
+  .rdp-day_disabled {
+    color: hsl(240 5% 65%);
+    opacity: 0.5;
+  }
+
+  .rdp-head_cell {
+    color: hsl(240 5% 45%);
+    font-size: 0.75rem;
+    font-weight: 500;
+  }
+
+  .rdp-caption_label {
+    font-weight: 600;
+    font-size: 0.875rem;
   }
 }

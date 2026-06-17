@@ -94,6 +94,8 @@
         <component>SearchBar</component>
         <component>LocationAutocomplete</component>
         <component>SearchFilters</component>
+        <component>DesktopFilters</component>
+        <component>MobileFilters</component>
         <component>ListingCard (preview)</component>
         <api>GET /api/locations/autocomplete</api>
         <api>GET /api/listings/search</api>

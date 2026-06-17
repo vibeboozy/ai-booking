@@ -43,7 +43,10 @@ export function buildSearchUrl(
     search.set('propertyType', params.propertyType);
   }
   if (params.amenities?.length) {
-    search.set('amenities', [...params.amenities].sort().join(','));
+    const amenitiesArray = Array.isArray(params.amenities)
+      ? params.amenities
+      : [params.amenities];
+    search.set('amenities', amenitiesArray.sort().join(','));
   }
   if (params.page !== undefined && params.page > 1) {
     search.set('page', String(params.page));
