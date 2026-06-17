@@ -15,3 +15,9 @@ export const PRICE_SLIDER_MIN = 0;
 export const PRICE_SLIDER_MAX = 100_000_000;
 
 export const PRICE_SLIDER_STEP = 100_000;
+
+export const DEBOUNCE_DELAY_MS = 300;
+
+export const AUTOCOMPLETE_MIN_CHARS = 2;
+
+export const AUTOCOMPLETE_DEFAULT_LIMIT = 5;

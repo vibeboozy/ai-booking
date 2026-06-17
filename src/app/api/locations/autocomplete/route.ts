@@ -13,6 +13,13 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { autocompleteLocations } from '@/modules/search/search.repository';
+import { AUTOCOMPLETE_MIN_CHARS, AUTOCOMPLETE_DEFAULT_LIMIT } from '@/modules/search/constants/searchFilters';
+
+const RATE_LIMIT_WINDOW_MS = 60 * 1000;
+const RATE_LIMIT_MAX = 60;
+const RATE_LIMIT_KEY_PREFIX = 'rate_limit:';
+const MAX_QUERY_LENGTH = 50;
+const MAX_AUTOCOMPLETE_LIMIT = 10;
 
 function logLine(
   module: string,
@@ -25,17 +32,14 @@ function logLine(
 }
 
 const querySchema = z.object({
-  q: z.string().max(50).optional().default(''),
-  limit: z.coerce.number().int().min(1).max(10).optional().default(5),
+  q: z.string().max(MAX_QUERY_LENGTH).optional().default(''),
+  limit: z.coerce.number().int().min(1).max(MAX_AUTOCOMPLETE_LIMIT).optional().default(AUTOCOMPLETE_DEFAULT_LIMIT),
 });
 
 type RateLimitKey = string;
 type RateLimitEntry = { count: number; windowStart: number };
 
 const rateLimitStore = new Map<RateLimitKey, RateLimitEntry>();
-
-const RATE_LIMIT_WINDOW_MS = 60 * 1000;
-const RATE_LIMIT_MAX = 60;
 
 function checkRateLimit(ip: string): { allowed: boolean; remaining: number } {
   const now = Date.now();

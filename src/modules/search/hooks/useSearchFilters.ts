@@ -29,8 +29,8 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { parseSearchParams } from '@/shared/utils/parseSearchParams';
 import { buildSearchUrl } from '@/shared/utils/buildSearchUrl';
 import type { SearchParams } from '@/shared/schemas/searchParams';
+import { DEBOUNCE_DELAY_MS } from '@/modules/search/constants/searchFilters';
 
-const DEBOUNCE_DELAY_MS = 300;
 const PRICE_FILTER_KEYS = ['priceMin', 'priceMax'] as const;
 
 export function useSearchFilters(): {

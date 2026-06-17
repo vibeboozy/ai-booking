@@ -15,9 +15,21 @@ import type { LocationType, Prisma } from '@prisma/client';
 import type { SearchParams } from '@/shared/schemas/searchParams';
 import type { ListingPreview, PropertyType } from '@/shared/types/listing';
 import type { Location } from '@/modules/search/types';
+import { AUTOCOMPLETE_MIN_CHARS, AUTOCOMPLETE_DEFAULT_LIMIT } from './constants/searchFilters';
+
+const PRISMA_LOCATION_TYPE_MAP: Record<LocationType, 'city' | 'country'> = {
+  CITY: 'city',
+  COUNTRY: 'country',
+} as const;
+
+const PROPERTY_TYPE_MAP: Record<string, PropertyType> = {
+  APARTMENT: 'apartment',
+  HOUSE: 'house',
+  ROOM: 'room',
+} as const;
 
 function mapPrismaLocationType(type: LocationType): 'city' | 'country' {
-  return type === 'CITY' ? 'city' : 'country';
+  return PRISMA_LOCATION_TYPE_MAP[type];
 }
 
 function logLine(
@@ -63,12 +75,12 @@ export async function autocompleteLocations(
   logLine('search', 'autocompleteLocations', 'AUTOCOMPLETE_LOCATIONS_REPO', 'ENTRY', {
     q,
     q_length: q.length,
-    limit: options.limit ?? 5,
+    limit: options.limit ?? AUTOCOMPLETE_DEFAULT_LIMIT,
   });
 
-  const limit = options.limit ?? 5;
+  const limit = options.limit ?? AUTOCOMPLETE_DEFAULT_LIMIT;
 
-  if (q.length > 0 && q.length < 2) {
+  if (q.length > 0 && q.length < AUTOCOMPLETE_MIN_CHARS) {
     logLine('search', 'autocompleteLocations', 'AUTOCOMPLETE_LOCATIONS_REPO', 'DECISION', {
       decision: 'return_empty_for_short_query',
       q_length: q.length,
@@ -319,7 +331,7 @@ export async function searchListings(
 
   const data: ListingPreview[] = listings.map((listing) => ({
     ...listing,
-    propertyType: listing.propertyType.toLowerCase() as PropertyType,
+    propertyType: PROPERTY_TYPE_MAP[listing.propertyType] ?? listing.propertyType.toLowerCase() as PropertyType,
   }));
 
   const result = {
