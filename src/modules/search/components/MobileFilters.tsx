@@ -34,7 +34,7 @@ export function MobileFilters() {
   const activeCount = countActiveFilters(params);
 
   return (
-    <div className="md:hidden">
+    <div>
       <Button
         variant="outline"
         size="sm"

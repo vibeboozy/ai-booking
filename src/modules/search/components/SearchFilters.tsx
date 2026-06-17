@@ -1,48 +1,45 @@
 /**
- * ANCHOR: SEARCH_FILTERS_COMPONENT
- * PURPOSE: Фильтры поиска (цена, тип жилья, удобства) с синхронизацией в URL.
+ * ANCHOR: SEARCH_FILTERS_CONTAINER
+ * PURPOSE: Контейнер фильтров — переключает DesktopFilters ↔ MobileFilters по breakpoint.
  *
  * @PreConditions:
- * - useSearchFilters hook доступен и возвращает { params, setParams, clearParams, resetFilters }
- * - shadcn компоненты: Slider, Checkbox, Button, Sheet/Dialog
+ * - DesktopFilters imported from '@/modules/search/components/DesktopFilters'
+ * - MobileFilters imported from '@/modules/search/components/MobileFilters'
+ * - lg breakpoint = 1024px
  *
  * @PostConditions:
- * - При изменении фильтра → setParams вызывается с debounce 300ms (для price slider)
- * - При сбросе → resetFilters сбрасывает только price/propertyType/amenities (city/guests сохраняются)
- * - Desktop: горизонтальная панель над результатами
- * - Mobile: кнопка "Фильтры" открывает drawer
+ * - Desktop (lg+): DesktopFilters в sticky sidebar (aside), MobileFilters hidden
+ * - Mobile (<lg): MobileFilters button visible (без wrapper), DesktopFilters hidden
+ * - FiltersContent reused from обоих компонентов
  *
- * @StateManagement:
- * - **UI state (useState):** для мгновенного отклика слайдера без лагов
- * - **Search results:** читают из URL query params через parseSearchParams
- * - Пример: слайдер обновляет local state мгновенно, но search API вызывается после debounce через URL
+ * @LayoutContract:
+ * - Desktop: <aside className="sticky top-6 self-start w-[280px] min-w-[280px]">DesktopFilters</aside>
+ * - Mobile: <MobileFilters /> без wrapper
  *
- * @Invariants:
- * - Price slider: min PRICE_SLIDER_MIN, max PRICE_SLIDER_MAX, step PRICE_SLIDER_STEP (all in kopeks)
- * - Property type: single select (apartment | house | room), toggle on/off
- * - Amenities: multiple select (wifi, kitchen, parking)
- * - Debounce 300ms для price slider
- * - URL sync: router.push(buildSearchUrl(newParams))
+ * @DelegatedToChildren:
+ * - Filter state management (useSearchFilters hook) → DesktopFilters / MobileFilters
+ * - URL sync (router.push) → DesktopFilters / MobileFilters
+ * - Debounce logic → DesktopFilters / MobileFilters
  *
- * @SideEffects:
- * - Изменение URL через router.push
- *
- * @ForbiddenChanges:
- * - Нельзя убирать debounce для price slider
+ * @SideEffects: нет
  */
 
-// [START SEARCH_FILTERS_COMPONENT]
+// [START SEARCH_FILTERS_CONTAINER]
 import { DesktopFilters } from './DesktopFilters';
 import { MobileFilters } from './MobileFilters';
 
 export function SearchFilters() {
-  console.log('[search][SearchFilters][RENDER]');
+  console.log('[search][SearchFilters][SEARCH_FILTERS_CONTAINER][RENDER]');
 
   return (
-    <div className="space-y-4">
-      <DesktopFilters />
-      <MobileFilters />
-    </div>
+    <>
+      <aside className="sticky top-6 self-start w-[280px] min-w-[280px] hidden lg:block">
+        <DesktopFilters />
+      </aside>
+      <div className="lg:hidden">
+        <MobileFilters />
+      </div>
+    </>
   );
 }
-// [END SEARCH_FILTERS_COMPONENT]
+// [END SEARCH_FILTERS_CONTAINER]
