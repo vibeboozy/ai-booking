@@ -10,6 +10,8 @@
  * - Implement search logic inline in page
  */
 
+import { SearchBar } from '@/modules/search';
+
 export default function HomePage() {
   return (
     <main className="container py-16">
@@ -21,15 +23,16 @@ export default function HomePage() {
           TripVibe
         </h1>
         <p className="mt-4 text-lg text-muted-foreground">
-          Скорость, прозрачные цены и UX без трения. Поиск жилья — в Phase 1.
+          Скорость, прозрачные цены и UX без трения.
         </p>
-        <div className="mt-8 flex flex-wrap justify-center gap-3">
-          <a
-            href="/search"
-            className="inline-flex h-10 items-center justify-center rounded-lg bg-primary px-6 text-sm font-medium text-primary-foreground hover:bg-primary/90"
-          >
-            Найти жильё
-          </a>
+      </section>
+
+      <section className="mx-auto mt-12 max-w-4xl">
+        <SearchBar />
+      </section>
+
+      <section className="mx-auto mt-16 max-w-2xl text-center">
+        <div className="flex flex-wrap justify-center gap-3">
           <a
             href="/login"
             className="inline-flex h-10 items-center justify-center rounded-lg border border-border px-6 text-sm font-medium hover:bg-muted"
@@ -38,7 +41,6 @@ export default function HomePage() {
           </a>
         </div>
       </section>
-      {/* TODO: <SearchBar /> */}
     </main>
   );
 }
