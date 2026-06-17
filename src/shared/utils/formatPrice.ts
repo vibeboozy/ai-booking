@@ -10,6 +10,10 @@
  * - Делить на 100 inline в компонентах
  */
 
-export function formatPrice(_amountMinor: number, _currency = 'RUB'): string {
-  return '';
+export function formatPrice(amountMinor: number, _currency = 'RUB'): string {
+  const rubles = amountMinor / 100;
+  return rubles.toLocaleString('ru-RU', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }) + ' ₽';
 }

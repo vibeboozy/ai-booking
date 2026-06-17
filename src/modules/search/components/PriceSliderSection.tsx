@@ -45,18 +45,17 @@ export function PriceSliderSection({
 
   return (
     <div>
-      {isFullRange ? (
-        <p className="text-sm text-muted-foreground">Любая цена</p>
-      ) : (
-        <PriceSlider
-          min={PRICE_SLIDER_MIN}
-          max={PRICE_SLIDER_MAX}
-          step={PRICE_SLIDER_STEP}
-          value={localValue}
-          onValueChange={handleValueChange}
-          formatValue={formatPrice}
-        />
+      {isFullRange && (
+        <p className="text-sm text-muted-foreground mb-2">Любая цена</p>
       )}
+      <PriceSlider
+        min={PRICE_SLIDER_MIN}
+        max={PRICE_SLIDER_MAX}
+        step={PRICE_SLIDER_STEP}
+        value={localValue}
+        onValueChange={handleValueChange}
+        formatValue={formatPrice}
+      />
     </div>
   );
 }

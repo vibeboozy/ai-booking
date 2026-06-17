@@ -24,7 +24,7 @@ erDiagram
 
     User {
         string id PK
-        string email UK
+        string email "UK"
         string name
         string avatarUrl
         string passwordHash
@@ -77,7 +77,7 @@ erDiagram
         string id PK
         string userId FK
         string listingId FK
-        string bookingId FK_UK
+        string bookingId FK "UK"
         int rating
         text text
         string[] photos
@@ -88,7 +88,7 @@ erDiagram
         string id PK
         string name
         enum type
-        string slug UK
+        string slug "UK"
         float lat
         float lng
     }
