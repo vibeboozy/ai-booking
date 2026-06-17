@@ -88,6 +88,10 @@ export function useSearchFilters(): {
 
       const newParams: Partial<SearchParams> = { ...params, ...partial };
 
+      if (partial.page === undefined) {
+        newParams.page = 1;
+      }
+
       const isPriceUpdate = PRICE_FILTER_KEYS.some(
         (key) => partial[key] !== undefined && params[key] !== partial[key],
       );

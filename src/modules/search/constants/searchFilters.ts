@@ -12,7 +12,7 @@
 
 export const PRICE_SLIDER_MIN = 0;
 
-export const PRICE_SLIDER_MAX = 100_000_000;
+export const PRICE_SLIDER_MAX = 10_000_000;
 
 export const PRICE_SLIDER_STEP = 100_000;
 

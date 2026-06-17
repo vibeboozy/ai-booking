@@ -33,6 +33,7 @@ import { parseSearchParams } from '@/shared/utils/parseSearchParams';
 import { searchListings } from '@/modules/search/search.repository';
 import { SearchFilters } from '@/modules/search/components/SearchFilters';
 import { ListingCard } from '@/modules/search/components/ListingCard';
+import { Pagination } from '@/modules/search/components/Pagination';
 import type { ListingPreview } from '@/shared/types/listing';
 import { Suspense } from 'react';
 import { SearchPageLoading } from './loading';
@@ -61,11 +62,14 @@ async function SearchResultsList(props: { filters: Awaited<ReturnType<typeof par
       {result.data.length === 0 ? (
         <EmptyState />
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {result.data.map((listing: ListingPreview) => (
-            <ListingCard key={listing.id} listing={listing} />
-          ))}
-        </div>
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {result.data.map((listing: ListingPreview) => (
+              <ListingCard key={listing.id} listing={listing} />
+            ))}
+          </div>
+          <Pagination meta={result.meta} />
+        </>
       )}
     </>
   );

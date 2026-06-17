@@ -246,7 +246,7 @@ export function buildWhereClause(params: SearchParams): Prisma.ListingWhereInput
  *
  * @PostConditions:
  * - data: ListingPreview[] (без description)
- * - meta.total: общее количество符合条件 объявлений
+ * - meta.total: total count of matching listings
  * - meta.page: текущая страница
  * - meta.hasMore: true если есть следующая страница
  * - Пустой city → возвращает все объявления (с другими фильтрами)
