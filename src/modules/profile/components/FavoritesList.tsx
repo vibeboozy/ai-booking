@@ -41,7 +41,7 @@ function FavoriteCard({
   return (
     <div
       className={cn(
-        'group relative overflow-hidden rounded-xl border border-gray-200 bg-white transition-all hover:shadow-lg dark:border-gray-700 dark:bg-gray-800',
+        'group relative overflow-hidden rounded-xl border border-gray-200 bg-white transition-all hover:shadow-lg',
         isRemoving && 'opacity-50',
       )}
     >
@@ -77,7 +77,7 @@ function FavoriteCard({
           </Link>
         </div>
 
-        <p className="mt-0.5 text-sm text-gray-500 dark:text-gray-400">
+        <p className="mt-0.5 text-sm text-gray-500">
           {listing.city}, {listing.country}
         </p>
 
@@ -110,7 +110,7 @@ function EmptyState() {
     <div className="flex flex-col items-center justify-center py-16 text-center">
       <div className="mb-4 text-5xl">❤️</div>
       <h3 className="text-lg font-semibold">Пока ничего не сохранено</h3>
-      <p className="mt-1 max-w-xs text-gray-500 dark:text-gray-400">
+      <p className="mt-1 max-w-xs text-gray-500">
         Нажмите на сердечко на понравившихся объектах, чтобы добавить их сюда
       </p>
       <Link
@@ -125,12 +125,12 @@ function EmptyState() {
 
 function SkeletonCard() {
   return (
-    <div className="animate-pulse overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700">
-      <div className="aspect-[4/3] bg-gray-200 dark:bg-gray-700" />
+    <div className="animate-pulse overflow-hidden rounded-xl border border-gray-200">
+      <div className="aspect-[4/3] bg-gray-200" />
       <div className="p-3">
-        <div className="h-4 w-3/4 rounded bg-gray-200 dark:bg-gray-700" />
-        <div className="mt-1 h-3 w-1/2 rounded bg-gray-200 dark:bg-gray-700" />
-        <div className="mt-2 h-3 w-1/3 rounded bg-gray-200 dark:bg-gray-700" />
+        <div className="h-4 w-3/4 rounded bg-gray-200" />
+        <div className="mt-1 h-3 w-1/2 rounded bg-gray-200" />
+        <div className="mt-2 h-3 w-1/3 rounded bg-gray-200" />
       </div>
     </div>
   );
@@ -202,7 +202,7 @@ export function FavoritesList({ initialFavorites }: FavoritesListProps) {
   // Error
   if (error) {
     return (
-      <div className="rounded-lg border border-red-200 bg-red-50 p-6 text-center text-red-600 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400">
+      <div className="rounded-lg border border-red-200 bg-red-50 p-6 text-center text-red-600">
         {error}
       </div>
     );

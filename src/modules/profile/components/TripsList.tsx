@@ -36,10 +36,10 @@ const statusLabels: Record<Trip['booking']['status'], string> = {
 };
 
 const statusBadgeClasses: Record<Trip['booking']['status'], string> = {
-  pending: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400',
-  confirmed: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
-  completed: 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400',
-  cancelled: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
+  pending: 'bg-yellow-100 text-yellow-800',
+  confirmed: 'bg-green-100 text-green-800',
+  completed: 'bg-gray-100 text-gray-800',
+  cancelled: 'bg-red-100 text-red-800',
 };
 
 function TripCard({ trip }: { trip: Trip }) {
@@ -74,7 +74,7 @@ function TripCard({ trip }: { trip: Trip }) {
   };
 
   return (
-    <div className="flex flex-col gap-4 rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800 sm:flex-row">
+    <div className="flex flex-col gap-4 rounded-lg border border-gray-200 bg-white p-4 shadow-sm sm:flex-row">
       {/* Image */}
       <div className="relative h-32 w-full overflow-hidden rounded-lg sm:h-40 sm:w-48">
         <Image
@@ -95,7 +95,7 @@ function TripCard({ trip }: { trip: Trip }) {
             >
               {listing.title}
             </Link>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
+            <p className="text-sm text-gray-500">
               {listing.city}, {listing.country}
             </p>
           </div>
@@ -148,8 +148,8 @@ function TripCard({ trip }: { trip: Trip }) {
                   className={cn(
                     'rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors',
                     showCancelConfirm
-                      ? 'border-red-500 bg-red-50 text-red-600 dark:bg-red-900/20'
-                      : 'border-red-300 text-red-600 hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/20',
+                      ? 'border-red-500 bg-red-50 text-red-600'
+                      : 'border-red-300 text-red-600 hover:bg-red-50',
                     isPending && 'opacity-50 cursor-not-allowed',
                   )}
                 >
@@ -171,7 +171,7 @@ function EmptyState({ status }: { status: 'upcoming' | 'history' }) {
       <h3 className="text-lg font-semibold">
         {status === 'upcoming' ? 'Нет предстоящих поездок' : 'Нет завершённых поездок'}
       </h3>
-      <p className="mt-1 text-gray-500 dark:text-gray-400">
+      <p className="mt-1 text-gray-500">
         {status === 'upcoming'
           ? 'Забронируйте жильё и начните планирование!'
           : 'Ваши завершённые поездки появятся здесь'}
@@ -214,7 +214,7 @@ export function TripsList({
   return (
     <div className="space-y-4">
       {/* Tabs */}
-      <div className="flex gap-1 rounded-lg bg-gray-100 p-1 dark:bg-gray-800">
+      <div className="flex gap-1 rounded-lg bg-gray-100 p-1">
         {tabs.map((tab) => (
           <button
             key={tab.value}
@@ -223,8 +223,8 @@ export function TripsList({
             className={cn(
               'flex-1 rounded-md px-4 py-2 text-sm font-medium transition-colors',
               activeTab === tab.value
-                ? 'bg-white shadow-sm dark:bg-gray-700'
-                : 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white',
+                ? 'bg-white shadow-sm'
+                : 'text-gray-600 hover:text-gray-900',
             )}
           >
             {tab.label}
@@ -238,14 +238,14 @@ export function TripsList({
           {[1, 2, 3].map((i) => (
             <div
               key={i}
-              className="animate-pulse rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800"
+              className="animate-pulse rounded-lg border border-gray-200 bg-gray-50 p-4"
             >
               <div className="flex gap-4">
-                <div className="h-32 w-48 rounded-lg bg-gray-200 dark:bg-gray-700" />
+                <div className="h-32 w-48 rounded-lg bg-gray-200" />
                 <div className="flex-1 space-y-2">
-                  <div className="h-4 w-3/4 rounded bg-gray-200 dark:bg-gray-700" />
-                  <div className="h-3 w-1/2 rounded bg-gray-200 dark:bg-gray-700" />
-                  <div className="mt-4 h-3 w-1/3 rounded bg-gray-200 dark:bg-gray-700" />
+                  <div className="h-4 w-3/4 rounded bg-gray-200" />
+                  <div className="h-3 w-1/2 rounded bg-gray-200" />
+                  <div className="mt-4 h-3 w-1/3 rounded bg-gray-200" />
                 </div>
               </div>
             </div>
@@ -255,7 +255,7 @@ export function TripsList({
 
       {/* Error */}
       {error && (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-red-600 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400">
+        <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-red-600">
           {error}
         </div>
       )}

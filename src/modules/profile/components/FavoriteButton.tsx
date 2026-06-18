@@ -72,14 +72,14 @@ export function FavoriteButton({
     setError(null);
 
     // Optimistic update
-    setIsFavorited(!isFavorited);
+    setIsFavorited(!previousFavorited);
 
     try {
-      const method = isFavorited ? 'DELETE' : 'POST';
-      const url = isFavorited
+      const method = previousFavorited ? 'DELETE' : 'POST';
+      const url = previousFavorited
         ? `/api/favorites/${listingId}`
         : '/api/favorites';
-      const body = isFavorited
+      const body = previousFavorited
         ? undefined
         : JSON.stringify({ listingId });
 
@@ -91,8 +91,8 @@ export function FavoriteButton({
 
       if (response.status === 401) {
         // Not authenticated - redirect to login
-        router.push(`/login?callbackUrl=${encodeURIComponent(window.location.pathname)}`);
         setIsFavorited(previousFavorited);
+        router.push(`/login?callbackUrl=${encodeURIComponent(window.location.pathname)}`);
         return;
       }
 
@@ -125,12 +125,12 @@ export function FavoriteButton({
         aria-label={isFavorited ? 'Удалить из избранного' : 'Добавить в избранное'}
         className={cn(
           'flex items-center justify-center rounded-full p-2 transition-all',
-          'hover:bg-gray-100 dark:hover:bg-gray-800',
+          'hover:bg-gray-100',
           'focus:outline-none focus:ring-2 focus:ring-primary/50',
           'disabled:opacity-50 disabled:cursor-not-allowed',
           isFavorited
             ? 'text-red-500 hover:text-red-600'
-            : 'text-gray-500 hover:text-gray-600 dark:text-gray-400 dark:hover:text-gray-300',
+            : 'text-gray-500 hover:text-gray-600',
           className,
         )}
       >
@@ -157,7 +157,7 @@ export function FavoriteButtonWithAuth(props: FavoriteButtonProps & { isAuthenti
         href={`/login?callbackUrl=${encodeURIComponent(`/listings/${props.listingId}`)}`}
         className={cn(
           'flex items-center justify-center rounded-full p-2',
-          'text-gray-500 hover:text-gray-600 dark:text-gray-400 dark:hover:text-gray-300',
+          'text-gray-500 hover:text-gray-600',
         )}
         aria-label="Войдите, чтобы добавить в избранное"
       >

@@ -33,7 +33,10 @@ export function useFavorites(options: UseFavoritesOptions = {}): {
 
   // Fetch initial favorites on mount
   useEffect(() => {
-    if (options.initialFavoriteIds && options.initialFavoriteIds.size > 0) {
+    // Only skip fetch if initialFavoriteIds was explicitly provided (even as empty Set)
+    // Use ?? operator to distinguish undefined from empty Set
+    const hasInitialIds = options.initialFavoriteIds !== undefined;
+    if (hasInitialIds) {
       return;
     }
 

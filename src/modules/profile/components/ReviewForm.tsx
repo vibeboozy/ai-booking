@@ -30,13 +30,14 @@ export function ReviewForm({ bookingId, listingTitle }: ReviewFormProps) {
     e.preventDefault();
     setError(null);
 
-    if (rating < 1 || rating > 5) {
-      setError('Пожалуйста, поставьте оценку');
+    // Check text length first (as per test expectations)
+    if (!text.trim() || text.trim().length < 10) {
+      setError('Отзыв должен содержать минимум 10 символов');
       return;
     }
 
-    if (!text.trim() || text.trim().length < 10) {
-      setError('Отзыв должен содержать минимум 10 символов');
+    if (rating < 1 || rating > 5) {
+      setError('Пожалуйста, поставьте оценку');
       return;
     }
 
@@ -52,12 +53,12 @@ export function ReviewForm({ bookingId, listingTitle }: ReviewFormProps) {
 
   if (submitted) {
     return (
-      <div className="rounded-lg border border-green-200 bg-green-50 p-6 text-center dark:border-green-800 dark:bg-green-900/20">
+      <div className="rounded-lg border border-green-200 bg-green-50 p-6 text-center">
         <div className="mb-2 text-4xl">✅</div>
-        <h3 className="text-lg font-semibold text-green-800 dark:text-green-400">
+        <h3 className="text-lg font-semibold text-green-800">
           Спасибо за отзыв!
         </h3>
-        <p className="mt-1 text-sm text-green-600 dark:text-green-500">
+        <p className="mt-1 text-sm text-green-600">
           Ваш отзыв о «{listingTitle}» поможет другим путешественникам.
         </p>
       </div>
@@ -67,8 +68,8 @@ export function ReviewForm({ bookingId, listingTitle }: ReviewFormProps) {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* Listing info */}
-      <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800">
-        <p className="text-sm text-gray-500 dark:text-gray-400">Отзыв о:</p>
+      <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
+        <p className="text-sm text-gray-500">Отзыв о:</p>
         <p className="font-semibold">{listingTitle}</p>
       </div>
 
@@ -95,7 +96,6 @@ export function ReviewForm({ bookingId, listingTitle }: ReviewFormProps) {
           className={cn(
             'w-full rounded-lg border border-gray-200 bg-white px-4 py-3 text-gray-900 placeholder-gray-400',
             'focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20',
-            'dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:placeholder-gray-500',
           )}
         />
         <p className="mt-1 text-sm text-gray-500">
@@ -105,7 +105,7 @@ export function ReviewForm({ bookingId, listingTitle }: ReviewFormProps) {
 
       {/* Error */}
       {error && (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-600 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400">
+        <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-600">
           {error}
         </div>
       )}
@@ -114,7 +114,7 @@ export function ReviewForm({ bookingId, listingTitle }: ReviewFormProps) {
       <div className="flex justify-end gap-3">
         <a
           href="/profile/trips"
-          className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800"
+          className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
         >
           Назад
         </a>

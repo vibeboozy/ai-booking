@@ -48,7 +48,7 @@ export function StarRating({ value, onChange, readonly, size = 'md' }: StarRatin
           )}
         >
           <svg
-            className={cn(sizeClasses[size], value >= star ? 'text-yellow-400' : 'text-gray-300 dark:text-gray-600')}
+            className={cn(sizeClasses[size], value >= star ? 'text-yellow-400' : 'text-gray-300')}
             viewBox="0 0 24 24"
             fill="currentColor"
             stroke="currentColor"

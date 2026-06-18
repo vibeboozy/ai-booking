@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import { ReviewForm } from '@/modules/profile/components/ReviewForm';
 
 // Mock submitReviewAction
@@ -20,67 +20,67 @@ describe('ReviewForm', () => {
 
   describe('рендеринг формы', () => {
     it('рендерит заголовок с названием объекта', () => {
-      render(<ReviewForm bookingId="booking-123" listingTitle="Уютная квартира" />);
-      expect(screen.getByText('Уютная квартира')).toBeInTheDocument();
+      const { container } = render(<ReviewForm bookingId="booking-123" listingTitle="Уютная квартира" />);
+      expect(within(container).getByText('Уютная квартира')).toBeInTheDocument();
     });
 
     it('рендерит поле textarea для отзыва', () => {
-      render(<ReviewForm bookingId="booking-123" listingTitle="Уютная квартира" />);
-      const textarea = screen.getByRole('textbox');
+      const { container } = render(<ReviewForm bookingId="booking-123" listingTitle="Уютная квартира" />);
+      const textarea = within(container).getByRole('textbox');
       expect(textarea).toBeInTheDocument();
     });
 
     it('рендерит StarRating компонент', () => {
-      render(<ReviewForm bookingId="booking-123" listingTitle="Уютная квартира" />);
-      const radiogroup = screen.getByRole('radiogroup');
+      const { container } = render(<ReviewForm bookingId="booking-123" listingTitle="Уютная квартира" />);
+      const radiogroup = within(container).getByRole('radiogroup');
       expect(radiogroup).toBeInTheDocument();
     });
 
     it('кнопка отправки disabled когда рейтинг 0', () => {
-      render(<ReviewForm bookingId="booking-123" listingTitle="Уютная квартира" />);
-      const submitButton = screen.getByRole('button', { name: /отправить/i });
+      const { container } = render(<ReviewForm bookingId="booking-123" listingTitle="Уютная квартира" />);
+      const submitButton = within(container).getByRole('button', { name: /отправить/i });
       expect(submitButton).toBeDisabled();
     });
 
     it('кнопка отправки disabled когда текст менее 10 символов', () => {
-      render(<ReviewForm bookingId="booking-123" listingTitle="Уютная квартира" />);
+      const { container } = render(<ReviewForm bookingId="booking-123" listingTitle="Уютная квартира" />);
 
       // Устанавливаем рейтинг
-      const radiogroup = screen.getByRole('radiogroup');
+      const radiogroup = within(container).getByRole('radiogroup');
       const buttons = radiogroup.querySelectorAll('button');
       fireEvent.click(buttons[2]); // 3 звезды
 
       // Вводим короткий текст
-      const textarea = screen.getByRole('textbox');
+      const textarea = within(container).getByRole('textbox');
       fireEvent.change(textarea, { target: { value: 'Короткий' } });
 
-      const submitButton = screen.getByRole('button', { name: /отправить отзыв/i });
+      const submitButton = within(container).getByRole('button', { name: /отправить отзыв/i });
       expect(submitButton).toBeDisabled();
     });
   });
 
   describe('валидация', () => {
     it('кнопка disabled когда рейтинг 0', () => {
-      render(<ReviewForm bookingId="booking-123" listingTitle="Уютная квартира" />);
+      const { container } = render(<ReviewForm bookingId="booking-123" listingTitle="Уютная квартира" />);
 
-      const textarea = screen.getByRole('textbox');
+      const textarea = within(container).getByRole('textbox');
       fireEvent.change(textarea, { target: { value: 'Длинный отзыв о квартире' } });
 
-      const submitButton = screen.getByRole('button', { name: /отправить/i });
+      const submitButton = within(container).getByRole('button', { name: /отправить/i });
       expect(submitButton).toBeDisabled();
     });
 
 it('кнопка disabled и не показывает ошибку когда текст менее 10 символов', () => {
-      render(<ReviewForm bookingId="booking-123" listingTitle="Уютная квартира" />);
+      const { container } = render(<ReviewForm bookingId="booking-123" listingTitle="Уютная квартира" />);
 
       // Устанавливаем рейтинг
-      const radiogroup = screen.getByRole('radiogroup');
+      const radiogroup = within(container).getByRole('radiogroup');
       fireEvent.click(radiogroup.querySelectorAll('button')[2]);
 
-      const textarea = screen.getByRole('textbox');
+      const textarea = within(container).getByRole('textbox');
       fireEvent.change(textarea, { target: { value: 'Короткий' } });
 
-      const submitButton = screen.getByRole('button', { name: /отправить отзыв/i });
+      const submitButton = within(container).getByRole('button', { name: /отправить отзыв/i });
       expect(submitButton).toBeDisabled();
 
       // Ошибка не должна показываться пока пользователь не попытается отправить
@@ -92,18 +92,18 @@ it('кнопка disabled и не показывает ошибку когда �
     it('вызывает submitReviewAction с правильными параметрами', async () => {
       mockSubmitReviewAction.mockResolvedValueOnce({ success: true });
 
-      render(<ReviewForm bookingId="booking-123" listingTitle="Уютная квартира" />);
+      const { container } = render(<ReviewForm bookingId="booking-123" listingTitle="Уютная квартира" />);
 
       // Устанавливаем рейтинг
-      const radiogroup = screen.getByRole('radiogroup');
+      const radiogroup = within(container).getByRole('radiogroup');
       const buttons = radiogroup.querySelectorAll('button');
       fireEvent.click(buttons[4]); // 5 звёзд
 
       // Вводим текст
-      const textarea = screen.getByRole('textbox');
+      const textarea = within(container).getByRole('textbox');
       fireEvent.change(textarea, { target: { value: 'Отличная квартира, всё понравилось!' } });
 
-      const submitButton = screen.getByRole('button', { name: /отправить/i });
+      const submitButton = within(container).getByRole('button', { name: /отправить/i });
       fireEvent.click(submitButton);
 
       await waitFor(() => {
@@ -118,15 +118,15 @@ it('кнопка disabled и не показывает ошибку когда �
     it('показывает сообщение об успехе после отправки', async () => {
       mockSubmitReviewAction.mockResolvedValueOnce({ success: true });
 
-      render(<ReviewForm bookingId="booking-123" listingTitle="Уютная квартира" />);
+      const { container } = render(<ReviewForm bookingId="booking-123" listingTitle="Уютная квартира" />);
 
-      const radiogroup = screen.getByRole('radiogroup');
+      const radiogroup = within(container).getByRole('radiogroup');
       fireEvent.click(radiogroup.querySelectorAll('button')[4]);
 
-      const textarea = screen.getByRole('textbox');
+      const textarea = within(container).getByRole('textbox');
       fireEvent.change(textarea, { target: { value: 'Отличная квартира, всё понравилось!' } });
 
-      fireEvent.click(screen.getByRole('button', { name: /отправить/i }));
+      fireEvent.click(within(container).getByRole('button', { name: /отправить/i }));
 
       await waitFor(() => {
         expect(screen.getByText('Спасибо за отзыв!')).toBeInTheDocument();
@@ -141,15 +141,15 @@ it('кнопка disabled и не показывает ошибку когда �
         error: 'Отзыв уже существует',
       });
 
-      render(<ReviewForm bookingId="booking-123" listingTitle="Уютная квартира" />);
+      const { container } = render(<ReviewForm bookingId="booking-123" listingTitle="Уютная квартира" />);
 
-      const radiogroup = screen.getByRole('radiogroup');
+      const radiogroup = within(container).getByRole('radiogroup');
       fireEvent.click(radiogroup.querySelectorAll('button')[4]);
 
-      const textarea = screen.getByRole('textbox');
+      const textarea = within(container).getByRole('textbox');
       fireEvent.change(textarea, { target: { value: 'Отличная квартира, всё понравилось!' } });
 
-      fireEvent.click(screen.getByRole('button', { name: /отправить/i }));
+      fireEvent.click(within(container).getByRole('button', { name: /отправить/i }));
 
       await waitFor(() => {
         expect(screen.getByText('Отзыв уже существует')).toBeInTheDocument();
@@ -159,21 +159,21 @@ it('кнопка disabled и не показывает ошибку когда �
 
   describe('счетчик символов', () => {
     it('показывает количество введенных символов', () => {
-      render(<ReviewForm bookingId="booking-123" listingTitle="Уютная квартира" />);
+      const { container } = render(<ReviewForm bookingId="booking-123" listingTitle="Уютная квартира" />);
 
-      const textarea = screen.getByRole('textbox');
+      const textarea = within(container).getByRole('textbox');
       fireEvent.change(textarea, { target: { value: 'Привет' } });
 
-      expect(screen.getByText('6 / 10 минимально')).toBeInTheDocument();
+      expect(within(container).getByText('6 / 10 минимально')).toBeInTheDocument();
     });
 
     it('меняет текст счетчика при вводе', () => {
-      render(<ReviewForm bookingId="booking-123" listingTitle="Уютная квартира" />);
+      const { container } = render(<ReviewForm bookingId="booking-123" listingTitle="Уютная квартира" />);
 
-      const textarea = screen.getByRole('textbox');
+      const textarea = within(container).getByRole('textbox');
       fireEvent.change(textarea, { target: { value: 'Длинный отзыв о квартире' } });
 
-      expect(screen.getByText('24 / 10 минимально')).toBeInTheDocument();
+      expect(within(container).getByText('24 / 10 минимально')).toBeInTheDocument();
     });
   });
 });

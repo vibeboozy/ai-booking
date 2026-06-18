@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import { FavoriteButton, FavoriteButtonWithAuth } from '@/modules/profile/components/FavoriteButton';
 import * as nextNavigation from 'next/navigation';
 
@@ -29,26 +29,26 @@ describe('FavoriteButton', () => {
 
   describe('базовый рендеринг', () => {
     it('рендерит кнопку с heart иконкой', () => {
-      render(<FavoriteButton listingId="listing-123" />);
-      const button = screen.getByRole('button');
+      const { container } = render(<FavoriteButton listingId="listing-123" />);
+      const button = within(container).getByRole('button');
       expect(button).toBeInTheDocument();
     });
 
     it('рендерит с data-testid="favorite-toggle"', () => {
-      render(<FavoriteButton listingId="listing-123" />);
-      const button = screen.getByTestId('favorite-toggle');
+      const { container } = render(<FavoriteButton listingId="listing-123" />);
+      const button = within(container).getByTestId('favorite-toggle');
       expect(button).toBeInTheDocument();
     });
 
     it('имеет правильный aria-label когда НЕ в избранном', () => {
-      render(<FavoriteButton listingId="listing-123" initialFavorited={false} />);
-      const button = screen.getByRole('button');
+      const { container } = render(<FavoriteButton listingId="listing-123" initialFavorited={false} />);
+      const button = within(container).getByRole('button');
       expect(button).toHaveAttribute('aria-label', 'Добавить в избранное');
     });
 
     it('имеет правильный aria-label когда В избранном', () => {
-      render(<FavoriteButton listingId="listing-123" initialFavorited={true} />);
-      const button = screen.getByRole('button');
+      const { container } = render(<FavoriteButton listingId="listing-123" initialFavorited={true} />);
+      const button = within(container).getByRole('button');
       expect(button).toHaveAttribute('aria-label', 'Удалить из избранного');
     });
   });
@@ -60,8 +60,8 @@ describe('FavoriteButton', () => {
         status: 200,
       });
 
-      render(<FavoriteButton listingId="listing-123" initialFavorited={false} />);
-      const button = screen.getByTestId('favorite-toggle');
+      const { container } = render(<FavoriteButton listingId="listing-123" initialFavorited={false} />);
+      const button = within(container).getByTestId('favorite-toggle');
 
       fireEvent.click(button);
 
@@ -80,8 +80,8 @@ describe('FavoriteButton', () => {
         status: 200,
       });
 
-      render(<FavoriteButton listingId="listing-123" initialFavorited={true} />);
-      const button = screen.getByTestId('favorite-toggle');
+      const { container } = render(<FavoriteButton listingId="listing-123" initialFavorited={true} />);
+      const button = within(container).getByTestId('favorite-toggle');
 
       fireEvent.click(button);
 
@@ -98,8 +98,8 @@ describe('FavoriteButton', () => {
         status: 200,
       });
 
-      render(<FavoriteButton listingId="listing-123" initialFavorited={false} />);
-      fireEvent.click(screen.getByTestId('favorite-toggle'));
+      const { container } = render(<FavoriteButton listingId="listing-123" initialFavorited={false} />);
+      fireEvent.click(within(container).getByTestId('favorite-toggle'));
 
       await waitFor(() => {
         expect(mockRouter.refresh).toHaveBeenCalled();
@@ -114,11 +114,11 @@ describe('FavoriteButton', () => {
         status: 500,
       });
 
-      render(<FavoriteButton listingId="listing-123" initialFavorited={false} />);
-      fireEvent.click(screen.getByTestId('favorite-toggle'));
+      const { container } = render(<FavoriteButton listingId="listing-123" initialFavorited={false} />);
+      fireEvent.click(within(container).getByTestId('favorite-toggle'));
 
       await waitFor(() => {
-        const errorDiv = screen.getByText('Ошибка при обновлении избранного');
+        const errorDiv = within(container).getByText('Ошибка при обновлении избранного');
         expect(errorDiv).toBeInTheDocument();
       });
     });
@@ -136,8 +136,8 @@ describe('FavoriteButton', () => {
         writable: true,
       });
 
-      render(<FavoriteButton listingId="listing-123" initialFavorited={false} />);
-      fireEvent.click(screen.getByTestId('favorite-toggle'));
+      const { container } = render(<FavoriteButton listingId="listing-123" initialFavorited={false} />);
+      fireEvent.click(within(container).getByTestId('favorite-toggle'));
 
       await waitFor(() => {
         expect(mockRouter.push).toHaveBeenCalledWith('/login?callbackUrl=%2Flistings%2F123');
@@ -157,8 +157,8 @@ describe('FavoriteButton', () => {
         resolvePromise = resolve;
       }));
 
-      render(<FavoriteButton listingId="listing-123" initialFavorited={false} />);
-      const button = screen.getByTestId('favorite-toggle');
+      const { container } = render(<FavoriteButton listingId="listing-123" initialFavorited={false} />);
+      const button = within(container).getByTestId('favorite-toggle');
 
       fireEvent.click(button);
       fireEvent.click(button); // Второй клик во время загрузки
@@ -174,14 +174,14 @@ describe('FavoriteButton', () => {
 
 describe('FavoriteButtonWithAuth', () => {
   it('рендерит ссылку на логин когда не авторизован', () => {
-    render(<FavoriteButtonWithAuth listingId="listing-123" isAuthenticated={false} />);
-    const link = screen.getByRole('link');
+    const { container } = render(<FavoriteButtonWithAuth listingId="listing-123" isAuthenticated={false} />);
+    const link = within(container).getByRole('link');
     expect(link).toHaveAttribute('href', '/login?callbackUrl=%2Flistings%2Flisting-123');
   });
 
   it('рендерит FavoriteButton когда авторизован', () => {
-    render(<FavoriteButtonWithAuth listingId="listing-123" isAuthenticated={true} />);
-    const button = screen.getByTestId('favorite-toggle');
+    const { container } = render(<FavoriteButtonWithAuth listingId="listing-123" isAuthenticated={true} />);
+    const button = within(container).getByTestId('favorite-toggle');
     expect(button).toBeInTheDocument();
   });
 });
