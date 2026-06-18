@@ -34,3 +34,6 @@ test-results/
 # build
 *.tsbuildinfo
 .next/cache/
+
+# vscode
+.vscode/
