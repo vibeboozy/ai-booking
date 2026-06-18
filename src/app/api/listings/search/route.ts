@@ -36,9 +36,7 @@ import { parseSearchParams } from '@/shared/utils/parseSearchParams';
 import { searchListings } from '@/modules/search/search.repository';
 import type { ListingPreview } from '@/shared/types/listing';
 
-export async function GET(
-  request: Request,
-): Promise<
+export async function GET(request: Request): Promise<
   NextResponse<
     | {
         data: ListingPreview[];

@@ -186,7 +186,7 @@ describe('AIConcierge Real API Integration', () => {
       }
 
       expect(fullResponse.length).toBeGreaterThan(0);
-    });
+    }, 15000);
 
     it('returns response within max tokens limit', async () => {
       if (!listingExists) return;
