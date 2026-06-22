@@ -9,11 +9,14 @@
  * - Inline price calculation (use booking module)
  */
 
+'use client';
+
 import Image from 'next/image';
 import { User, Wifi, Car, Utensils } from 'lucide-react';
 import type { ListingDetail } from '@/modules/listing/types';
 import { formatPrice } from '@/shared/utils/formatPrice';
 import { AMENITY_LABELS, isAmenity } from '@/shared/constants/amenities';
+import { RatingBadge } from '@/modules/reviews/components/RatingBadge';
 
 type ListingDetailsProps = {
   listing: ListingDetail;
@@ -30,18 +33,18 @@ export function ListingDetails({ listing }: ListingDetailsProps) {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold">{listing.title}</h1>
-        <div className="flex items-center gap-2 text-gray-600 mt-1">
+        <div className="flex items-center gap-2 text-gray-600 mt-1 flex-wrap">
           <span>
             {listing.city}, {listing.country}
           </span>
           {listing.averageRating > 0 && (
             <>
               <span>·</span>
-              <span className="flex items-center gap-1">
-                <span>★</span>
-                <span>{listing.averageRating.toFixed(1)}</span>
-                <span className="text-gray-400">({listing.reviewCount})</span>
-              </span>
+              <RatingBadge
+                averageRating={listing.averageRating}
+                reviewCount={listing.reviewCount}
+                size="sm"
+              />
             </>
           )}
         </div>

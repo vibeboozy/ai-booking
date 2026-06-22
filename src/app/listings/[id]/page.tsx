@@ -18,6 +18,7 @@ import { ListingDetails } from '@/modules/listing/components/ListingDetails';
 import { ListingMap } from '@/modules/listing/components/ListingMap';
 import { AIConcierge } from '@/modules/listing/components/AIConcierge';
 import { ListingDateSelector } from '@/modules/listing/components/ListingDateSelector';
+import { ReviewList } from '@/modules/reviews/components/ReviewList';
 
 type ListingPageProps = {
   params: Promise<{ id: string }>;
@@ -73,6 +74,14 @@ export default async function ListingPage({ params }: ListingPageProps) {
           <AIConcierge listingId={listing.id} />
         </div>
       </div>
+
+      {/* Reviews section */}
+      <section aria-labelledby="reviews-heading">
+        <h2 id="reviews-heading" className="text-xl font-semibold mb-4">
+          Отзывы
+        </h2>
+        <ReviewList listingId={listing.id} />
+      </section>
     </main>
   );
 }
