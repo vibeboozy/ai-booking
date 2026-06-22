@@ -10,10 +10,15 @@
  */
 
 export { CheckoutForm } from '@/modules/booking/components/CheckoutForm';
+export { DateDisplay } from '@/modules/booking/components/DateDisplay';
 export { PriceBreakdown } from '@/modules/booking/components/PriceBreakdown';
 export { MockPaymentButton } from '@/modules/booking/components/MockPaymentButton';
 export { useCheckout } from '@/modules/booking/hooks/useCheckout';
 export { calculateTotalPrice } from '@/modules/booking/utils/calculateTotalPrice';
+export {
+  getBookingById,
+  type BookingWithListing,
+} from '@/modules/booking/booking.repository';
 export type {
   Booking,
   BookingCreateInput,

@@ -68,4 +68,14 @@ describe('search params URL utils', () => {
       '/search?city=%D0%9C%D0%BE%D1%81%D0%BA%D0%B2%D0%B0',
     );
   });
+
+  it('handles amenities as string (from URL params spread)', () => {
+    const result = buildSearchUrl({ amenities: 'wifi' as unknown as string[] });
+    expect(result).toBe('/search?amenities=wifi');
+  });
+
+  it('handles amenities as array (normal case)', () => {
+    const result = buildSearchUrl({ amenities: ['wifi', 'kitchen'] });
+    expect(result).toBe('/search?amenities=kitchen%2Cwifi');
+  });
 });

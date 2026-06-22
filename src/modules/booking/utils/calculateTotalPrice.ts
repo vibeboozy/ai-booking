@@ -20,9 +20,22 @@ type ListingFees = {
 };
 
 export function calculateTotalPrice(
-  _listing: ListingFees,
-  _checkIn: Date,
-  _checkOut: Date,
+  listing: ListingFees,
+  checkIn: Date,
+  checkOut: Date,
 ): PriceBreakdown {
-  return { nights: 0, subtotal: 0, cleaningFee: 0, serviceFee: 0, total: 0 };
+  const nights = Math.ceil(
+    (checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24),
+  );
+
+  if (nights <= 0) {
+    return { nights: 0, subtotal: 0, cleaningFee: 0, serviceFee: 0, total: 0 };
+  }
+
+  const subtotal = listing.pricePerNight * nights;
+  const cleaningFee = listing.cleaningFee;
+  const serviceFee = listing.serviceFee;
+  const total = subtotal + cleaningFee + serviceFee;
+
+  return { nights, subtotal, cleaningFee, serviceFee, total };
 }

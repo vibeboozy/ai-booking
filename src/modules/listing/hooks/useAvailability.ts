@@ -5,20 +5,45 @@
  *
  * DO:
  * - staleTime config для кэша
+ * - refetchOnMount для актуальных данных после бронирования
  * DONT:
  * - Fetch availability в Server Component и prop-drill глубоко
  */
 
 'use client';
 
+import { useQuery } from '@tanstack/react-query';
 import type { AvailabilityDay } from '@/modules/listing/types';
 
 export function useAvailability(
-  _listingId: string,
-  _month?: string,
+  listingId: string,
+  month?: string,
 ): {
   days: AvailabilityDay[];
   isLoading: boolean;
+  error?: Error;
 } {
-  return { days: [], isLoading: false };
+  const query = useQuery({
+    queryKey: ['availability', listingId, month],
+    queryFn: async () => {
+      const url = month
+        ? `/api/listings/${listingId}/availability?month=${month}`
+        : `/api/listings/${listingId}/availability`;
+
+      const res = await fetch(url);
+      if (!res.ok) throw new Error('Failed to fetch availability');
+      const { data } = await res.json();
+      return data as AvailabilityDay[];
+    },
+    staleTime: 0,
+    refetchOnMount: 'always',
+    gcTime: 0,
+    retry: 1,
+  });
+
+  return {
+    days: query.data ?? [],
+    isLoading: query.isLoading,
+    error: query.error as Error | undefined,
+  };
 }

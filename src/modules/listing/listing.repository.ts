@@ -10,17 +10,128 @@
  * - Отдельная таблица AvailabilityBlock
  */
 
+import { prisma } from '@/lib/prisma';
 import type { AvailabilityDay, ListingDetail } from '@/modules/listing/types';
 
 export async function getListingById(
-  _id: string,
+  id: string,
 ): Promise<ListingDetail | null> {
-  return null;
+  const listing = await prisma.listing.findUnique({
+    where: { id },
+    include: {
+      host: {
+        select: {
+          id: true,
+          name: true,
+          avatarUrl: true,
+        },
+      },
+    },
+  });
+
+  if (!listing) return null;
+
+  const propertyTypeMap: Record<string, 'apartment' | 'house' | 'room'> = {
+    APARTMENT: 'apartment',
+    HOUSE: 'house',
+    ROOM: 'room',
+  };
+
+  return {
+    id: listing.id,
+    title: listing.title,
+    city: listing.city,
+    country: listing.country,
+    pricePerNight: listing.pricePerNight,
+    images: listing.images,
+    averageRating: listing.averageRating,
+    reviewCount: listing.reviewCount,
+    propertyType: propertyTypeMap[listing.propertyType] ?? 'apartment',
+    description: listing.description,
+    amenities: listing.amenities,
+    lat: listing.lat,
+    lng: listing.lng,
+    cleaningFee: listing.cleaningFee,
+    serviceFee: listing.serviceFee,
+    host: listing.host,
+  };
 }
 
 export async function getAvailability(
-  _listingId: string,
-  _month?: string,
+  listingId: string,
+  month?: string,
 ): Promise<AvailabilityDay[]> {
-  return [];
+  const now = new Date();
+  const today = new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()),
+  );
+
+  const startDate = month
+    ? new Date(
+        Date.UTC(
+          parseInt(month.split('-')[0]),
+          parseInt(month.split('-')[1]) - 1,
+          1,
+        ),
+      )
+    : new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+
+  const endOfMonth = new Date(
+    Date.UTC(startDate.getUTCFullYear(), startDate.getUTCMonth() + 1, 0),
+  );
+  const endDate = month
+    ? endOfMonth
+    : new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 3, 0));
+
+  const bookings = await prisma.booking.findMany({
+    where: {
+      listingId,
+      status: { in: ['CONFIRMED', 'PENDING'] },
+      OR: [
+        {
+          checkIn: { lte: endDate },
+          checkOut: { gte: startDate },
+        },
+      ],
+    },
+    select: {
+      checkIn: true,
+      checkOut: true,
+    },
+  });
+
+  const bookedDates = new Set<string>();
+  for (const booking of bookings) {
+    const checkIn = new Date(booking.checkIn);
+    const checkOut = new Date(booking.checkOut);
+    const current = new Date(Math.max(checkIn.getTime(), startDate.getTime()));
+    const end = new Date(Math.min(checkOut.getTime(), endDate.getTime()));
+
+    while (current <= end) {
+      if (current >= today) {
+        bookedDates.add(current.toISOString().split('T')[0]);
+      }
+      current.setUTCDate(current.getUTCDate() + 1);
+    }
+  }
+
+  const result: AvailabilityDay[] = [];
+  const current = new Date(Math.max(startDate.getTime(), today.getTime()));
+  const end = endDate;
+
+  while (current <= end) {
+    const dateStr = current.toISOString().split('T')[0];
+    let status: 'free' | 'booked' | 'past' = 'free';
+
+    if (current < today) {
+      status = 'past';
+    } else if (bookedDates.has(dateStr)) {
+      status = 'booked';
+    }
+
+    result.push({ date: dateStr, status });
+    current.setUTCDate(current.getUTCDate() + 1);
+  }
+
+  return result;
 }

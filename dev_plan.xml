@@ -132,7 +132,7 @@
       </task>
       <task id="1.B.3" priority="high">
         <title>ListingMap</title>
-        <details>Mapbox map centered on listing lat/lng, single marker, responsive height.</details>
+        <details>OpenStreetMap static map centered on listing lat/lng, single marker, responsive height.</details>
       </task>
       <task id="1.B.4" priority="high">
         <title>AvailabilityCalendar</title>
@@ -389,10 +389,6 @@
     <risk id="R3" severity="medium">
       <description>AI Concierge hallucinations</description>
       <mitigation>Strict system prompt: answer ONLY from context; fallback «Не знаю» if not in data</mitigation>
-    </risk>
-    <risk id="R4" severity="low">
-      <description>Mapbox token missing in dev</description>
-      <mitigation>Static map image fallback when NEXT_PUBLIC_MAPBOX_TOKEN absent</mitigation>
     </risk>
   </risks>
 

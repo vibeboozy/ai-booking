@@ -224,8 +224,8 @@
     <rule id="SEC-ENV-001" severity="critical">
       <title>Secrets in environment only</title>
       <description>
-        DATABASE_URL, NEXTAUTH_SECRET, OPENAI_API_KEY — server-side env only.
-        NEXT_PUBLIC_* — ONLY for non-sensitive values (Mapbox token, app URL).
+        DATABASE_URL, NEXTAUTH_SECRET, AI_PROVIDER_URL, AI_API_KEY, AI_MODEL_NAME — server-side env only.
+        NEXT_PUBLIC_* — ONLY for non-sensitive values (app URL).
         NEVER commit .env files. .env.example with placeholder values only.
       </description>
     </rule>
@@ -235,13 +235,6 @@
       <description>
         src/env.ts — Zod schema validating all required env vars at startup.
         Fail fast with clear message if missing.
-      </description>
-    </rule>
-
-    <rule id="SEC-ENV-003" severity="warning">
-      <title>Mapbox token restrictions</title>
-      <description>
-        NEXT_PUBLIC_MAPBOX_TOKEN MUST have URL restrictions in Mapbox dashboard for production domain.
       </description>
     </rule>
   </section>
@@ -293,7 +286,7 @@
         X-Content-Type-Options: nosniff,
         X-Frame-Options: DENY,
         Referrer-Policy: strict-origin-when-cross-origin,
-        Content-Security-Policy (restrict script sources, allow Mapbox domains).
+        Content-Security-Policy (restrict script sources).
       </description>
     </rule>
 

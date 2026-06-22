@@ -4,6 +4,7 @@ import { Inter, Space_Grotesk } from 'next/font/google';
 import '@/app/globals.css';
 import { Footer } from '@/shared/ui/footer';
 import { Header } from '@/shared/ui/header';
+import { Providers } from '@/app/providers';
 
 /**
  * ANCHOR: shared
@@ -44,7 +45,9 @@ export default function RootLayout({
       >
         <div className="flex min-h-screen flex-col">
           <Header />
-          <div className="flex-1">{children}</div>
+          <Providers>
+            <div className="flex-1">{children}</div>
+          </Providers>
           <Footer />
         </div>
       </body>

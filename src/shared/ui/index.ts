@@ -22,3 +22,14 @@ export {
 export { Footer } from '@/shared/ui/footer';
 export { Header } from '@/shared/ui/header';
 export { LoginForm } from '@/shared/ui/login-form';
+export { Modal } from '@/shared/ui/modal';
+export { PriceSlider } from '@/components/ui/slider';
+export { Checkbox } from '@/components/ui/checkbox';
+export { Sheet } from '@/components/ui/sheet';
+export { Calendar } from '@/components/ui/calendar';
+export {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+  PopoverAnchor,
+} from '@/components/ui/popover';

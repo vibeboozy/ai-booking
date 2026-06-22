@@ -11,9 +11,6 @@ export function Footer() {
       <div className="container flex flex-col gap-4 py-8 text-sm text-muted-foreground md:flex-row md:items-center md:justify-between">
         <p>© {new Date().getFullYear()} TripVibe — бронирование без трения</p>
         <nav className="flex gap-4">
-          <Link href="/search" className="hover:text-foreground">
-            Поиск
-          </Link>
           <Link href="/login" className="hover:text-foreground">
             Вход
           </Link>
