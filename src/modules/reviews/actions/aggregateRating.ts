@@ -6,6 +6,24 @@
 
 'use server';
 
-export async function aggregateRating(_listingId: string): Promise<void> {
-  // TODO: implement
+import { prisma } from '@/lib/prisma';
+import { calculateAverageRating } from '@/modules/reviews/utils/calculateAverageRating';
+
+export async function aggregateRating(listingId: string): Promise<void> {
+  const reviews = await prisma.review.findMany({
+    where: { listingId },
+    select: { rating: true },
+  });
+
+  const ratings = reviews.map((r) => r.rating);
+  const averageRating = calculateAverageRating(ratings);
+  const reviewCount = reviews.length;
+
+  await prisma.listing.update({
+    where: { id: listingId },
+    data: {
+      averageRating,
+      reviewCount,
+    },
+  });
 }
