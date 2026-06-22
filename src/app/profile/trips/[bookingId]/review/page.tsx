@@ -9,7 +9,7 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { ReviewForm } from '@/modules/profile';
+import { ReviewForm } from '@/modules/reviews';
 
 type ReviewPageProps = {
   params: Promise<{ bookingId: string }>;

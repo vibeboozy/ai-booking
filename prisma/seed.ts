@@ -178,11 +178,12 @@ async function seedBookings(
   userId: string,
   listingIds: string[],
 ): Promise<void> {
-  const bookingId = 'seed-booking-dev-upcoming';
+  // Upcoming booking
+  const upcomingId = 'seed-booking-dev-upcoming';
   const listingId = listingIds[0];
 
   await prisma.booking.upsert({
-    where: { id: bookingId },
+    where: { id: upcomingId },
     update: {
       userId,
       listingId,
@@ -193,7 +194,7 @@ async function seedBookings(
       status: BookingStatus.CONFIRMED,
     },
     create: {
-      id: bookingId,
+      id: upcomingId,
       userId,
       listingId,
       checkIn: new Date('2026-07-01'),
@@ -201,6 +202,33 @@ async function seedBookings(
       guests: 2,
       totalPrice: 1200000,
       status: BookingStatus.CONFIRMED,
+    },
+  });
+
+  // Completed/archived booking (for review testing)
+  const completedId = 'seed-booking-dev-completed';
+  const completedListingId = listingIds[1] || listingId;
+
+  await prisma.booking.upsert({
+    where: { id: completedId },
+    update: {
+      userId,
+      listingId: completedListingId,
+      checkIn: new Date('2026-06-10'),
+      checkOut: new Date('2026-06-15'),
+      guests: 2,
+      totalPrice: 1500000,
+      status: BookingStatus.COMPLETED,
+    },
+    create: {
+      id: completedId,
+      userId,
+      listingId: completedListingId,
+      checkIn: new Date('2026-06-10'),
+      checkOut: new Date('2026-06-15'),
+      guests: 2,
+      totalPrice: 1500000,
+      status: BookingStatus.COMPLETED,
     },
   });
 }
