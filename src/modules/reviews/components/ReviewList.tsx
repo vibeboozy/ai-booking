@@ -14,12 +14,14 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { StarRating } from '@/modules/reviews/components/StarRating';
+import { removeReview } from '@/modules/reviews/actions/deleteReview';
 import { cn } from '@/shared/utils/cn';
 import type { ReviewPublic } from '@/modules/reviews/types';
 
 type ReviewListProps = {
   listingId: string;
   initialLimit?: number;
+  currentUserId?: string | null;
   className?: string;
 };
 
@@ -49,8 +51,17 @@ function formatDate(dateString: string): string {
   });
 }
 
-function ReviewCard({ review }: { review: ReviewPublic }) {
+function ReviewCard({
+  review,
+  currentUserId,
+  onDelete,
+}: {
+  review: ReviewPublic;
+  currentUserId?: string | null;
+  onDelete?: (reviewId: string) => void;
+}) {
   const maskedName = maskAuthorName(review.author.name);
+  const isOwner = currentUserId && currentUserId === review.author.id;
 
   return (
     <article className="border-b border-gray-100 py-6 last:border-0">
@@ -67,6 +78,28 @@ function ReviewCard({ review }: { review: ReviewPublic }) {
             <div className="flex items-center gap-2">
               <StarRating value={review.rating} readonly size="sm" />
               <span className="text-sm text-gray-500">{formatDate(review.createdAt)}</span>
+              {isOwner && onDelete && (
+                <button
+                  onClick={() => onDelete(review.id)}
+                  className="text-gray-400 hover:text-red-500 transition-colors p-1"
+                  aria-label="Удалить отзыв"
+                  title="Удалить отзыв"
+                >
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                    />
+                  </svg>
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -181,6 +214,7 @@ function LoadingSkeleton() {
 export function ReviewList({
   listingId,
   initialLimit = REVIEWS_PER_PAGE,
+  currentUserId,
   className,
 }: ReviewListProps) {
   const [reviews, setReviews] = useState<ReviewPublic[]>([]);
@@ -218,6 +252,24 @@ export function ReviewList({
   useEffect(() => {
     fetchReviews(1);
   }, [fetchReviews]);
+
+  const handleDeleteReview = useCallback(
+    async (reviewId: string) => {
+      if (!confirm('Удалить этот отзыв?')) {
+        return;
+      }
+
+      const result = await removeReview(reviewId);
+      if (result.error) {
+        alert(result.error);
+        return;
+      }
+
+      // Refresh reviews list
+      fetchReviews(currentPage);
+    },
+    [currentPage, fetchReviews],
+  );
 
   const handlePageChange = useCallback(
     (page: number) => {
@@ -284,7 +336,12 @@ export function ReviewList({
       {/* Reviews list */}
       <div className="divide-y divide-gray-100">
         {reviews.map((review) => (
-          <ReviewCard key={review.id} review={review} />
+          <ReviewCard
+            key={review.id}
+            review={review}
+            currentUserId={currentUserId}
+            onDelete={currentUserId ? handleDeleteReview : undefined}
+          />
         ))}
       </div>
 

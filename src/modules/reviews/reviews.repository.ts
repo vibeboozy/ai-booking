@@ -64,6 +64,7 @@ export async function createReview(
       include: {
         user: {
           select: {
+            id: true,
             name: true,
             avatarUrl: true,
           },
@@ -98,6 +99,7 @@ export async function createReview(
     text: result.text,
     photos: result.photos,
     author: {
+      id: result.user.id,
       name: result.user.name,
       avatarUrl: result.user.avatarUrl ?? undefined,
     },
@@ -118,6 +120,7 @@ export async function getListingReviews(
       include: {
         user: {
           select: {
+            id: true,
             name: true,
             avatarUrl: true,
           },
@@ -137,6 +140,7 @@ export async function getListingReviews(
       text: review.text,
       photos: review.photos,
       author: {
+        id: review.user.id,
         name: review.user.name,
         avatarUrl: review.user.avatarUrl ?? undefined,
       },
@@ -144,4 +148,48 @@ export async function getListingReviews(
     })),
     meta: { total, page },
   };
+}
+
+export async function deleteReview(
+  userId: string,
+  reviewId: string,
+): Promise<void> {
+  // Fetch review with listing to validate ownership
+  const review = await prisma.review.findUnique({
+    where: { id: reviewId },
+    include: { listing: true },
+  });
+
+  if (!review) {
+    throw new Error('Review not found');
+  }
+
+  if (review.userId !== userId) {
+    throw new Error('Not authorized to delete this review');
+  }
+
+  // Delete review and update listing rating in transaction
+  await prisma.$transaction(async (tx) => {
+    await tx.review.delete({
+      where: { id: reviewId },
+    });
+
+    // Recalculate listing rating after deletion
+    const allReviews = await tx.review.findMany({
+      where: { listingId: review.listingId },
+      select: { rating: true },
+    });
+
+    const ratings = allReviews.map((r) => r.rating);
+    const averageRating = calculateAverageRating(ratings);
+    const reviewCount = allReviews.length;
+
+    await tx.listing.update({
+      where: { id: review.listingId },
+      data: {
+        averageRating,
+        reviewCount,
+      },
+    });
+  });
 }

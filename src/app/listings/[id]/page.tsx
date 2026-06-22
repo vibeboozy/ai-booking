@@ -12,6 +12,7 @@
 
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
+import { auth } from '@/lib/auth';
 import { getListingById } from '@/modules/listing/listing.repository';
 import { ImageGallery } from '@/modules/listing/components/ImageGallery';
 import { ListingDetails } from '@/modules/listing/components/ListingDetails';
@@ -48,6 +49,7 @@ export async function generateMetadata({
 
 export default async function ListingPage({ params }: ListingPageProps) {
   const { id } = await params;
+  const session = await auth();
 
   const listing = await getListingById(id);
 
@@ -80,7 +82,7 @@ export default async function ListingPage({ params }: ListingPageProps) {
         <h2 id="reviews-heading" className="text-xl font-semibold mb-4">
           Отзывы
         </h2>
-        <ReviewList listingId={listing.id} />
+        <ReviewList listingId={listing.id} currentUserId={session?.user?.id} />
       </section>
     </main>
   );
