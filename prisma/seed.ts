@@ -72,7 +72,7 @@ const PROPERTY_TYPES = [
 ] as const;
 
 function listingImage(seed: number): string {
-  return `https://placehold.co/800x600/64748b/ffffff?text=Listing+${seed}`;
+  return `https://picsum.photos/seed/${seed}/800/600`;
 }
 
 async function upsertUser(

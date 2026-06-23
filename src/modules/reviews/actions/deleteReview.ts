@@ -23,7 +23,8 @@ export async function removeReview(
     await deleteReview(session.user.id, reviewId);
     return { data: { deleted: true } };
   } catch (err) {
-    const message = err instanceof Error ? err.message : 'Ошибка при удалении отзыва';
+    const message =
+      err instanceof Error ? err.message : 'Ошибка при удалении отзыва';
     return { error: message };
   }
 }

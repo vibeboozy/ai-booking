@@ -23,12 +23,12 @@ describe('StarRating', () => {
     it('renders with correct filled stars for value 3', () => {
       render(<StarRating value={3} onChange={vi.fn()} />);
       const stars = screen.getAllByRole('button');
-      
+
       // First 3 should be yellow (filled)
       expect(stars[0].querySelector('svg')).toHaveClass('text-yellow-400');
       expect(stars[1].querySelector('svg')).toHaveClass('text-yellow-400');
       expect(stars[2].querySelector('svg')).toHaveClass('text-yellow-400');
-      
+
       // Last 2 should be gray (empty)
       expect(stars[3].querySelector('svg')).toHaveClass('text-gray-300');
       expect(stars[4].querySelector('svg')).toHaveClass('text-gray-300');
@@ -55,22 +55,22 @@ describe('StarRating', () => {
     it('calls onChange when star is clicked', () => {
       const onChange = vi.fn();
       render(<StarRating value={0} onChange={onChange} />);
-      
+
       const stars = screen.getAllByRole('button');
       fireEvent.click(stars[2]); // Click 3rd star (value 3)
-      
+
       expect(onChange).toHaveBeenCalledWith(3);
     });
 
     it('calls onChange with correct value for each star', () => {
       const onChange = vi.fn();
       render(<StarRating value={0} onChange={onChange} />);
-      
+
       const stars = screen.getAllByRole('button');
-      
+
       fireEvent.click(stars[0]);
       expect(onChange).toHaveBeenLastCalledWith(1);
-      
+
       fireEvent.click(stars[4]);
       expect(onChange).toHaveBeenLastCalledWith(5);
     });
@@ -87,10 +87,10 @@ describe('StarRating', () => {
     it('does not call onChange when clicked in readonly mode', () => {
       const onChange = vi.fn();
       render(<StarRating value={3} onChange={onChange} readonly />);
-      
+
       const stars = screen.getAllByRole('button');
       fireEvent.click(stars[2]);
-      
+
       expect(onChange).not.toHaveBeenCalled();
     });
 
@@ -109,7 +109,7 @@ describe('StarRating', () => {
       const container = screen.getByRole('radiogroup');
       expect(container).toHaveAttribute(
         'aria-label',
-        'Оцените от 1 до 5 звёзд. Выбрано: 3 звезды'
+        'Оцените от 1 до 5 звёзд. Выбрано: 3 звезды',
       );
     });
 
@@ -118,7 +118,7 @@ describe('StarRating', () => {
       const container = screen.getByRole('radiogroup');
       expect(container).toHaveAttribute(
         'aria-label',
-        'Оцените от 1 до 5 звёзд. Выбрано: не выбрано'
+        'Оцените от 1 до 5 звёзд. Выбрано: не выбрано',
       );
     });
 

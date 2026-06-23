@@ -1,7 +1,7 @@
 /**
  * ANCHOR: listing
  * PURPOSE: Блок описания объекта: title, amenities, host, price preview.
- * Dependencies: @/modules/listing/types, @/shared/utils/formatPrice.
+ * Dependencies: @/modules/listing/types, @/shared/utils/formatPrice, @/modules/profile (FavoriteButton).
  *
  * DO:
  * - Pre-fill dates from URL search params
@@ -17,9 +17,11 @@ import type { ListingDetail } from '@/modules/listing/types';
 import { formatPrice } from '@/shared/utils/formatPrice';
 import { AMENITY_LABELS, isAmenity } from '@/shared/constants/amenities';
 import { RatingBadge } from '@/modules/reviews/components/RatingBadge';
+import { FavoriteButton } from '@/modules/profile';
 
 type ListingDetailsProps = {
   listing: ListingDetail;
+  initialFavorited?: boolean;
 };
 
 const AMENITY_ICONS: Record<string, React.ReactNode> = {
@@ -28,7 +30,10 @@ const AMENITY_ICONS: Record<string, React.ReactNode> = {
   parking: <Car size={16} />,
 };
 
-export function ListingDetails({ listing }: ListingDetailsProps) {
+export function ListingDetails({
+  listing,
+  initialFavorited = false,
+}: ListingDetailsProps) {
   return (
     <div className="space-y-6">
       <div>
@@ -47,6 +52,13 @@ export function ListingDetails({ listing }: ListingDetailsProps) {
               />
             </>
           )}
+        </div>
+        <div className="mt-3">
+          <FavoriteButton
+            listingId={listing.id}
+            initialFavorited={initialFavorited}
+            showLabel
+          />
         </div>
       </div>
 

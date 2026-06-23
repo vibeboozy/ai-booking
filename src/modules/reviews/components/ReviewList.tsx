@@ -74,10 +74,14 @@ function ReviewCard({
 
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between gap-2 flex-wrap">
-            <span className="font-medium text-gray-900 truncate">{maskedName}</span>
+            <span className="font-medium text-gray-900 truncate">
+              {maskedName}
+            </span>
             <div className="flex items-center gap-2">
               <StarRating value={review.rating} readonly size="sm" />
-              <span className="text-sm text-gray-500">{formatDate(review.createdAt)}</span>
+              <span className="text-sm text-gray-500">
+                {formatDate(review.createdAt)}
+              </span>
               {isOwner && onDelete && (
                 <button
                   onClick={() => onDelete(review.id)}
@@ -224,30 +228,35 @@ export function ReviewList({
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchReviews = useCallback(async (page: number) => {
-    setIsLoading(true);
-    setError(null);
+  const fetchReviews = useCallback(
+    async (page: number) => {
+      setIsLoading(true);
+      setError(null);
 
-    try {
-      const response = await fetch(
-        `/api/listings/${listingId}/reviews?page=${page}&limit=${initialLimit}`,
-      );
+      try {
+        const response = await fetch(
+          `/api/listings/${listingId}/reviews?page=${page}&limit=${initialLimit}`,
+        );
 
-      if (!response.ok) {
-        throw new Error('Failed to fetch reviews');
+        if (!response.ok) {
+          throw new Error('Failed to fetch reviews');
+        }
+
+        const data: ReviewsResponse = await response.json();
+        setReviews(data.data);
+        setTotal(data.meta.total);
+        setTotalPages(Math.ceil(data.meta.total / initialLimit));
+        setCurrentPage(data.meta.page);
+      } catch (err) {
+        setError(
+          err instanceof Error ? err.message : 'Ошибка загрузки отзывов',
+        );
+      } finally {
+        setIsLoading(false);
       }
-
-      const data: ReviewsResponse = await response.json();
-      setReviews(data.data);
-      setTotal(data.meta.total);
-      setTotalPages(Math.ceil(data.meta.total / initialLimit));
-      setCurrentPage(data.meta.page);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Ошибка загрузки отзывов');
-    } finally {
-      setIsLoading(false);
-    }
-  }, [listingId, initialLimit]);
+    },
+    [listingId, initialLimit],
+  );
 
   useEffect(() => {
     fetchReviews(1);

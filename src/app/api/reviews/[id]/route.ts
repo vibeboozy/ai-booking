@@ -22,7 +22,10 @@ export async function DELETE(
   const session = await auth();
 
   if (!session?.user?.id) {
-    return NextResponse.json({ error: 'Требуется авторизация' }, { status: 401 });
+    return NextResponse.json(
+      { error: 'Требуется авторизация' },
+      { status: 401 },
+    );
   }
 
   const { id } = await params;
@@ -31,7 +34,8 @@ export async function DELETE(
     await deleteReview(session.user.id, id);
     return NextResponse.json({ data: { deleted: true } }, { status: 200 });
   } catch (err) {
-    const message = err instanceof Error ? err.message : 'Ошибка при удалении отзыва';
+    const message =
+      err instanceof Error ? err.message : 'Ошибка при удалении отзыва';
     return NextResponse.json({ error: message }, { status: 400 });
   }
 }

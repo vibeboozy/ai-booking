@@ -18,7 +18,10 @@ import { submitReview } from '@/modules/reviews/actions/submitReview';
 const reviewSchema = z.object({
   bookingId: z.string().min(1, 'bookingId обязателен'),
   rating: z.number().int().min(1).max(5, 'Рейтинг должен быть от 1 до 5'),
-  text: z.string().min(1, 'Текст отзыва обязателен').max(5000, 'Отзыв слишком длинный'),
+  text: z
+    .string()
+    .min(1, 'Текст отзыва обязателен')
+    .max(5000, 'Отзыв слишком длинный'),
   photos: z.array(z.string().url()).optional(),
 });
 
@@ -26,7 +29,10 @@ export async function POST(request: Request) {
   const session = await auth();
 
   if (!session?.user?.id) {
-    return NextResponse.json({ error: 'Требуется авторизация' }, { status: 401 });
+    return NextResponse.json(
+      { error: 'Требуется авторизация' },
+      { status: 401 },
+    );
   }
 
   let body: unknown;

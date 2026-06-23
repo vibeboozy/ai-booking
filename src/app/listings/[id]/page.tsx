@@ -14,6 +14,7 @@ import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { auth } from '@/lib/auth';
 import { getListingById } from '@/modules/listing/listing.repository';
+import { isFavorited } from '@/modules/profile/profile.repository';
 import { ImageGallery } from '@/modules/listing/components/ImageGallery';
 import { ListingDetails } from '@/modules/listing/components/ListingDetails';
 import { ListingMap } from '@/modules/listing/components/ListingMap';
@@ -57,13 +58,20 @@ export default async function ListingPage({ params }: ListingPageProps) {
     notFound();
   }
 
+  const initialFavorited = session?.user?.id
+    ? await isFavorited(session.user.id, listing.id)
+    : false;
+
   return (
     <main className="max-w-6xl mx-auto px-4 py-8 space-y-10">
       <ImageGallery images={listing.images} title={listing.title} />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-8">
-          <ListingDetails listing={listing} />
+          <ListingDetails
+            listing={listing}
+            initialFavorited={initialFavorited}
+          />
           <ListingMap
             lat={listing.lat}
             lng={listing.lng}

@@ -19,12 +19,20 @@ import { cn } from '@/shared/utils/cn';
 type ReviewFormProps = {
   bookingId: string;
   listingTitle: string;
-  onSubmit?: (data: { rating: number; text: string; photos: string[] }) => Promise<{ success: boolean; error?: string }>;
+  onSubmit?: (data: {
+    rating: number;
+    text: string;
+    photos: string[];
+  }) => Promise<{ success: boolean; error?: string }>;
 };
 
 const ratingLabels = ['', 'Ужасно', 'Плохо', 'Нормально', 'Хорошо', 'Отлично'];
 
-export function ReviewForm({ bookingId, listingTitle, onSubmit }: ReviewFormProps) {
+export function ReviewForm({
+  bookingId,
+  listingTitle,
+  onSubmit,
+}: ReviewFormProps) {
   const [rating, setRating] = useState(0);
   const [text, setText] = useState('');
   const [photos, setPhotos] = useState<string[]>([]);
@@ -32,24 +40,27 @@ export function ReviewForm({ bookingId, listingTitle, onSubmit }: ReviewFormProp
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handlePhotoUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files) return;
+  const handlePhotoUpload = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const files = e.target.files;
+      if (!files) return;
 
-    // Limit to 5 photos
-    if (photos.length >= 5) {
-      setError('Максимум 5 фотографий');
-      return;
-    }
+      // Limit to 5 photos
+      if (photos.length >= 5) {
+        setError('Максимум 5 фотографий');
+        return;
+      }
 
-    // For now, create local URLs for preview
-    // In production, this would upload to a storage service
-    const newPhotos: string[] = [];
-    for (let i = 0; i < Math.min(files.length, 5 - photos.length); i++) {
-      newPhotos.push(URL.createObjectURL(files[i]));
-    }
-    setPhotos((prev) => [...prev, ...newPhotos]);
-  }, [photos.length]);
+      // For now, create local URLs for preview
+      // In production, this would upload to a storage service
+      const newPhotos: string[] = [];
+      for (let i = 0; i < Math.min(files.length, 5 - photos.length); i++) {
+        newPhotos.push(URL.createObjectURL(files[i]));
+      }
+      setPhotos((prev) => [...prev, ...newPhotos]);
+    },
+    [photos.length],
+  );
 
   const removePhoto = useCallback((index: number) => {
     setPhotos((prev) => {
@@ -89,7 +100,12 @@ export function ReviewForm({ bookingId, listingTitle, onSubmit }: ReviewFormProp
           const response = await fetch('/api/reviews', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ bookingId, rating, text: text.trim(), photos }),
+            body: JSON.stringify({
+              bookingId,
+              rating,
+              text: text.trim(),
+              photos,
+            }),
           });
 
           if (response.ok) {

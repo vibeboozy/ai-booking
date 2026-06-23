@@ -95,17 +95,11 @@ export default async function ReviewPage({ params }: ReviewPageProps) {
     <main className="mx-auto max-w-2xl px-4 py-8">
       {/* Breadcrumb */}
       <nav className="mb-6 flex items-center gap-2 text-sm text-gray-500">
-        <Link
-          href="/profile"
-          className="hover:text-gray-700"
-        >
+        <Link href="/profile" className="hover:text-gray-700">
           Профиль
         </Link>
         <span>/</span>
-        <Link
-          href="/profile/trips"
-          className="hover:text-gray-700"
-        >
+        <Link href="/profile/trips" className="hover:text-gray-700">
           Мои поездки
         </Link>
         <span>/</span>

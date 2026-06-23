@@ -23,6 +23,7 @@ type FavoriteButtonProps = {
   listingId: string;
   initialFavorited?: boolean;
   size?: 'sm' | 'md';
+  showLabel?: boolean;
   className?: string;
 };
 
@@ -54,6 +55,7 @@ export function FavoriteButton({
   listingId,
   initialFavorited = false,
   size = 'md',
+  showLabel = false,
   className,
 }: FavoriteButtonProps) {
   const router = useRouter();
@@ -134,7 +136,7 @@ export function FavoriteButton({
           isFavorited ? 'Удалить из избранного' : 'Добавить в избранное'
         }
         className={cn(
-          'flex items-center justify-center rounded-full p-2 transition-all',
+          'flex items-center gap-2 rounded-lg px-3 py-2 transition-all',
           'hover:bg-gray-100',
           'focus:outline-none focus:ring-2 focus:ring-primary/50',
           'disabled:opacity-50 disabled:cursor-not-allowed',
@@ -145,6 +147,11 @@ export function FavoriteButton({
         )}
       >
         <HeartIcon filled={isFavorited} className={sizeClasses[size]} />
+        {showLabel && (
+          <span className="text-sm font-medium">
+            {isFavorited ? 'В избранном' : 'Добавить в избранное'}
+          </span>
+        )}
       </button>
 
       {error && (

@@ -31,7 +31,9 @@ describe('RatingBadge', () => {
     });
 
     it('does not display count when showCount is false', () => {
-      render(<RatingBadge averageRating={4.5} reviewCount={25} showCount={false} />);
+      render(
+        <RatingBadge averageRating={4.5} reviewCount={25} showCount={false} />,
+      );
       const countElement = screen.queryByText(/\(\d+\)/);
       expect(countElement).not.toBeInTheDocument();
     });
@@ -65,7 +67,9 @@ describe('RatingBadge', () => {
   describe('Accessibility', () => {
     it('has correct aria-label with rating', () => {
       render(<RatingBadge averageRating={4.5} reviewCount={10} />);
-      const container = screen.getByLabelText('Рейтинг 4.5 из 5 на основе 10 отзывов');
+      const container = screen.getByLabelText(
+        'Рейтинг 4.5 из 5 на основе 10 отзывов',
+      );
       expect(container).toBeInTheDocument();
     });
 
