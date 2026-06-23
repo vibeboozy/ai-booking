@@ -195,10 +195,8 @@ describe('AvailabilityCalendar', () => {
   it('renders selected check-in/check-out dates from props', () => {
     const today = new Date();
     today.setUTCHours(0, 0, 0, 0);
-    const checkIn = new Date(today);
-    checkIn.setUTCDate(checkIn.getUTCDate() + 5);
-    const checkOut = new Date(today);
-    checkOut.setUTCDate(checkIn.getUTCDate() + 3);
+    const checkIn = new Date(today.getTime() + 2 * 24 * 60 * 60 * 1000);
+    const checkOut = new Date(today.getTime() + 5 * 24 * 60 * 60 * 1000);
 
     render(
       <AvailabilityCalendar

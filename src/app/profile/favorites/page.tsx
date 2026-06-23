@@ -26,10 +26,7 @@ export default async function ProfileFavoritesPage() {
       <main className="mx-auto max-w-6xl px-4 py-8">
         {/* Breadcrumb */}
         <nav className="mb-6 flex items-center gap-2 text-sm text-gray-500">
-          <Link
-            href="/profile"
-            className="hover:text-gray-700"
-          >
+          <Link href="/profile" className="hover:text-gray-700">
             Профиль
           </Link>
           <span>/</span>

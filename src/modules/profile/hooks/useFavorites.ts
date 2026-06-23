@@ -45,7 +45,7 @@ export function useFavorites(options: UseFavoritesOptions = {}): {
         const response = await fetch('/api/profile/favorites');
         if (response.ok) {
           const data = await response.json();
-          const ids = new Set(
+          const ids: Set<string> = new Set(
             data.data.map((listing: { id: string }) => listing.id),
           );
           setFavoriteIds(ids);

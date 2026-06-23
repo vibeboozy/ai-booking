@@ -10,6 +10,14 @@
  * - AVG() on every search query
  */
 
-export function calculateAverageRating(_ratings: number[]): number {
-  return 0;
+export function calculateAverageRating(ratings: number[]): number {
+  if (!ratings || ratings.length === 0) {
+    return 0;
+  }
+
+  const sum = ratings.reduce((acc, rating) => acc + rating, 0);
+  const average = sum / ratings.length;
+
+  // Round to 1 decimal place
+  return Math.round(average * 10) / 10;
 }

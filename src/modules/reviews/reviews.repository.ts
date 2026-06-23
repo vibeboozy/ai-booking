@@ -10,18 +10,186 @@
  * - Allow duplicate review per booking
  */
 
+import { prisma } from '@/lib/prisma';
+import { calculateAverageRating } from '@/modules/reviews/utils/calculateAverageRating';
 import type { ReviewInput, ReviewPublic } from '@/modules/reviews/types';
 
 export async function createReview(
-  _userId: string,
-  _input: ReviewInput,
+  userId: string,
+  input: ReviewInput,
 ): Promise<ReviewPublic> {
-  throw new Error('Not implemented');
+  // Fetch booking with listing to validate ownership and status
+  const booking = await prisma.booking.findUnique({
+    where: { id: input.bookingId },
+    include: { listing: true },
+  });
+
+  if (!booking) {
+    throw new Error('Booking not found');
+  }
+
+  if (booking.userId !== userId) {
+    throw new Error('Not authorized to review this booking');
+  }
+
+  if (booking.status !== 'COMPLETED') {
+    throw new Error('Can only review completed bookings');
+  }
+
+  // Check if review already exists for this booking
+  const existingReview = await prisma.review.findUnique({
+    where: { bookingId: input.bookingId },
+  });
+
+  if (existingReview) {
+    throw new Error('Review already exists for this booking');
+  }
+
+  // Validate rating
+  if (input.rating < 1 || input.rating > 5) {
+    throw new Error('Rating must be between 1 and 5');
+  }
+
+  // Create review and update listing rating in transaction
+  const result = await prisma.$transaction(async (tx) => {
+    const review = await tx.review.create({
+      data: {
+        userId,
+        listingId: booking.listingId,
+        bookingId: input.bookingId,
+        rating: input.rating,
+        text: input.text,
+        photos: input.photos || [],
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            avatarUrl: true,
+          },
+        },
+      },
+    });
+
+    // Recalculate listing rating
+    const allReviews = await tx.review.findMany({
+      where: { listingId: booking.listingId },
+      select: { rating: true },
+    });
+
+    const ratings = allReviews.map((r) => r.rating);
+    const averageRating = calculateAverageRating(ratings);
+    const reviewCount = allReviews.length;
+
+    await tx.listing.update({
+      where: { id: booking.listingId },
+      data: {
+        averageRating,
+        reviewCount,
+      },
+    });
+
+    return review;
+  });
+
+  return {
+    id: result.id,
+    rating: result.rating,
+    text: result.text,
+    photos: result.photos,
+    author: {
+      id: result.user.id,
+      name: result.user.name,
+      avatarUrl: result.user.avatarUrl ?? undefined,
+    },
+    createdAt: result.createdAt.toISOString(),
+  };
 }
 
 export async function getListingReviews(
-  _listingId: string,
-  _page?: number,
+  listingId: string,
+  page: number = 1,
 ): Promise<{ data: ReviewPublic[]; meta: { total: number; page: number } }> {
-  return { data: [], meta: { total: 0, page: 1 } };
+  const pageSize = 10;
+  const skip = (page - 1) * pageSize;
+
+  const [reviews, total] = await Promise.all([
+    prisma.review.findMany({
+      where: { listingId },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            avatarUrl: true,
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+      skip,
+      take: pageSize,
+    }),
+    prisma.review.count({ where: { listingId } }),
+  ]);
+
+  return {
+    data: reviews.map((review) => ({
+      id: review.id,
+      rating: review.rating,
+      text: review.text,
+      photos: review.photos,
+      author: {
+        id: review.user.id,
+        name: review.user.name,
+        avatarUrl: review.user.avatarUrl ?? undefined,
+      },
+      createdAt: review.createdAt.toISOString(),
+    })),
+    meta: { total, page },
+  };
+}
+
+export async function deleteReview(
+  userId: string,
+  reviewId: string,
+): Promise<void> {
+  // Fetch review with listing to validate ownership
+  const review = await prisma.review.findUnique({
+    where: { id: reviewId },
+    include: { listing: true },
+  });
+
+  if (!review) {
+    throw new Error('Review not found');
+  }
+
+  if (review.userId !== userId) {
+    throw new Error('Not authorized to delete this review');
+  }
+
+  // Delete review and update listing rating in transaction
+  await prisma.$transaction(async (tx) => {
+    await tx.review.delete({
+      where: { id: reviewId },
+    });
+
+    // Recalculate listing rating after deletion
+    const allReviews = await tx.review.findMany({
+      where: { listingId: review.listingId },
+      select: { rating: true },
+    });
+
+    const ratings = allReviews.map((r) => r.rating);
+    const averageRating = calculateAverageRating(ratings);
+    const reviewCount = allReviews.length;
+
+    await tx.listing.update({
+      where: { id: review.listingId },
+      data: {
+        averageRating,
+        reviewCount,
+      },
+    });
+  });
 }

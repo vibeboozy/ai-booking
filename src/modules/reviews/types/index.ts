@@ -17,6 +17,7 @@ export type ReviewPublic = {
   text: string;
   photos: string[];
   author: {
+    id: string;
     name: string;
     avatarUrl?: string;
   };
