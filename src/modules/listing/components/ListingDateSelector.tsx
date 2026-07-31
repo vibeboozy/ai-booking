@@ -19,6 +19,7 @@ import { AlertCircle } from 'lucide-react';
 import { AvailabilityCalendar } from '@/modules/listing/components/AvailabilityCalendar';
 import { useAvailability } from '@/modules/listing/hooks/useAvailability';
 import { toLocalDateString, parseLocalDate } from '@/shared/utils/date';
+import { URL } from '@/shared/constants/urls';
 
 type ListingDateSelectorProps = {
   listingId: string;
@@ -103,7 +104,7 @@ export function ListingDateSelector({ listingId }: ListingDateSelectorProps) {
   const handleBook = () => {
     if (selectedCheckIn && selectedCheckOut) {
       router.push(
-        `/checkout/${listingId}?checkIn=${toLocalDateString(selectedCheckIn)}&checkOut=${toLocalDateString(selectedCheckOut)}&guests=1`,
+        `${URL.CHECKOUT(listingId)}?checkIn=${toLocalDateString(selectedCheckIn)}&checkOut=${toLocalDateString(selectedCheckOut)}&guests=1`,
       );
     }
   };

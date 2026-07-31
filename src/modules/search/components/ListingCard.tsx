@@ -34,6 +34,7 @@ import Image from 'next/image';
 import { useSearchParams } from 'next/navigation';
 import type { ListingPreview } from '@/shared/types/listing';
 import { formatPrice } from '@/shared/utils/formatPrice';
+import { URL } from '@/shared/constants/urls';
 
 type ListingCardProps = {
   listing: ListingPreview;
@@ -49,7 +50,7 @@ export function ListingCard({ listing }: ListingCardProps) {
 
   const searchParams = useSearchParams();
   const searchQuery = searchParams.toString();
-  const listingUrl = `/listings/${listing.id}${searchQuery ? `?${searchQuery}` : ''}`;
+  const listingUrl = `${URL.LISTING(listing.id)}${searchQuery ? `?${searchQuery}` : ''}`;
 
   const hasImages = listing.images && listing.images.length > 0;
   const imageSrc = hasImages ? listing.images[0] : null;

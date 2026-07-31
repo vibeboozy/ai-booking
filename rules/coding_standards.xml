@@ -163,6 +163,28 @@ export default async function SearchPage({ searchParams }) {
   <!-- API & DATA                                                 -->
   <!-- ═══════════════════════════════════════════════════════════ -->
 
+  <section id="url">
+    <rule id="URL-001" severity="error">
+      <title>Use URL and API constants</title>
+      <description>
+        Все URL-адреса (URL) и API-эндпоинты (API) определяются в src/shared/constants/urls.ts.
+        При использовании router.push(), redirect(), Link href, fetch() — импортировать константу из URL или API.
+        Это обеспечивает единую точку изменения и предотвращает опечатки.
+      </description>
+      <example_good><![CDATA[
+import { API, URL } from '@/shared/constants/urls';
+router.push(URL.PROFILE_TRIPS);
+<Link href={URL.LISTING(listing.id)} />
+fetch(API.BOOKINGS, { method: 'POST' });
+      ]]></example_good>
+      <example_bad><![CDATA[
+router.push('/profile/trips');
+<Link href="/listings/${listingId}" />
+fetch('/api/bookings', { method: 'POST' });
+      ]]></example_bad>
+    </rule>
+  </section>
+
   <section id="api">
     <rule id="API-001" severity="error">
       <title>Zod validation on all inputs</title>

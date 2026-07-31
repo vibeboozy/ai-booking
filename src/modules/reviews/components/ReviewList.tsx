@@ -17,6 +17,7 @@ import { StarRating } from '@/modules/reviews/components/StarRating';
 import { removeReview } from '@/modules/reviews/actions/deleteReview';
 import { cn } from '@/shared/utils/cn';
 import type { ReviewPublic } from '@/modules/reviews/types';
+import { API } from '@/shared/constants/urls';
 
 type ReviewListProps = {
   listingId: string;
@@ -235,7 +236,7 @@ export function ReviewList({
 
       try {
         const response = await fetch(
-          `/api/listings/${listingId}/reviews?page=${page}&limit=${initialLimit}`,
+          `${API.LISTINGS_REVIEWS(listingId)}?page=${page}&limit=${initialLimit}`,
         );
 
         if (!response.ok) {

@@ -10,6 +10,7 @@ import Link from 'next/link';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { ReviewForm } from '@/modules/reviews';
+import { URL } from '@/shared/constants/urls';
 
 type ReviewPageProps = {
   params: Promise<{ bookingId: string }>;
@@ -19,7 +20,7 @@ export default async function ReviewPage({ params }: ReviewPageProps) {
   const session = await auth();
 
   if (!session?.user) {
-    redirect('/login?callbackUrl=/profile/trips');
+    redirect(`${URL.LOGIN}?callbackUrl=${URL.PROFILE_TRIPS}`);
   }
 
   const { bookingId } = await params;
@@ -52,7 +53,7 @@ export default async function ReviewPage({ params }: ReviewPageProps) {
   }
 
   if (booking.userId !== session.user.id) {
-    redirect('/profile/trips');
+    redirect(URL.PROFILE_TRIPS);
   }
 
   if (booking.status !== 'COMPLETED') {
@@ -81,7 +82,7 @@ export default async function ReviewPage({ params }: ReviewPageProps) {
             Отзыв уже существует
           </h1>
           <Link
-            href="/profile/trips?status=history"
+            href={`${URL.PROFILE_TRIPS}?status=history`}
             className="mt-4 inline-block text-primary hover:underline"
           >
             Вернуться к поездкам
@@ -95,11 +96,11 @@ export default async function ReviewPage({ params }: ReviewPageProps) {
     <main className="mx-auto max-w-2xl px-4 py-8">
       {/* Breadcrumb */}
       <nav className="mb-6 flex items-center gap-2 text-sm text-gray-500">
-        <Link href="/profile" className="hover:text-gray-700">
+        <Link href={URL.PROFILE} className="hover:text-gray-700">
           Профиль
         </Link>
         <span>/</span>
-        <Link href="/profile/trips" className="hover:text-gray-700">
+        <Link href={URL.PROFILE_TRIPS} className="hover:text-gray-700">
           Мои поездки
         </Link>
         <span>/</span>

@@ -18,6 +18,7 @@ import type { PriceBreakdown } from '@/modules/booking/types';
 import type { AvailabilityDay } from '@/modules/listing/types';
 import { calculateTotalPrice } from '@/modules/booking/utils/calculateTotalPrice';
 import { toLocalDateString, parseLocalDate } from '@/shared/utils/date';
+import { API } from '@/shared/constants/urls';
 
 export function useCheckout(
   listing: ListingDetail,
@@ -131,7 +132,7 @@ export function useCheckout(
 
     setIsSubmitting(true);
     try {
-      const res = await fetch('/api/bookings', {
+      const res = await fetch(API.BOOKINGS, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

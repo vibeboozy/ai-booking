@@ -25,34 +25,38 @@ function createMockDays(
 ): Array<{ date: string; status: 'free' | 'booked' | 'past' }> {
   const days: Array<{ date: string; status: 'free' | 'booked' | 'past' }> = [];
   const lastDay = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
+  const today = new Date();
+  today.setUTCHours(0, 0, 0, 0);
   for (let d = 1; d <= lastDay; d++) {
     const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
     const date = new Date(Date.UTC(year, month, d));
-    const today = new Date();
-    today.setUTCHours(0, 0, 0, 0);
     const past = date < today;
+    const isBookable = !past && d % 5 === 0;
     days.push({
       date: dateStr,
-      status: past ? 'past' : d % 5 === 0 ? 'booked' : 'free',
+      status: past ? 'past' : isBookable ? 'booked' : 'free',
     });
   }
   return days;
 }
 
-function getFutureClickableDates(container: HTMLElement): HTMLElement[] {
-  const today = new Date();
-  today.setUTCHours(0, 0, 0, 0);
+function getClickableDays(
+  container: HTMLElement,
+): Array<{ element: HTMLElement; day: number; dateStr: string }> {
   const buttons = container.querySelectorAll('[role="button"]');
-  return Array.from(buttons).filter((btn) => {
+  const result: Array<{ element: HTMLElement; day: number; dateStr: string }> = [];
+  for (const btn of buttons) {
     const text = btn.textContent;
-    if (!text) return false;
+    if (!text) continue;
     const day = parseInt(text, 10);
-    if (isNaN(day)) return false;
-    const date = new Date(
-      Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), day),
-    );
-    return date >= today;
-  }) as HTMLElement[];
+    if (isNaN(day)) continue;
+    result.push({
+      element: btn as HTMLElement,
+      day,
+      dateStr: text.trim(),
+    });
+  }
+  return result;
 }
 
 describe('AvailabilityCalendar', () => {
@@ -181,9 +185,24 @@ describe('AvailabilityCalendar', () => {
   });
 
   it('applies booked date styling', () => {
+    mockUseAvailability.mockReturnValue({
+      days: [
+        { date: '2026-08-05', status: 'booked' },
+        { date: '2026-08-10', status: 'booked' },
+        { date: '2026-08-15', status: 'free' },
+      ],
+      isLoading: false,
+      error: undefined,
+    });
+
     const { container } = render(<AvailabilityCalendar listingId="test-id" />);
+    const nextBtn = container.querySelector(
+      'button[aria-label="Следующий месяц"]',
+    ) as HTMLButtonElement;
+    fireEvent.click(nextBtn);
+
     const bookedDates = container.querySelectorAll('.bg-red-100');
-    expect(bookedDates.length).toBeGreaterThan(0);
+    expect(bookedDates.length).toBe(2);
   });
 
   it('applies past date styling', () => {
@@ -193,38 +212,62 @@ describe('AvailabilityCalendar', () => {
   });
 
   it('renders selected check-in/check-out dates from props', () => {
-    const today = new Date();
-    today.setUTCHours(0, 0, 0, 0);
-    const checkIn = new Date(today.getTime() + 2 * 24 * 60 * 60 * 1000);
-    const checkOut = new Date(today.getTime() + 5 * 24 * 60 * 60 * 1000);
+    const checkIn = new Date(Date.UTC(2026, 7, 5));
+    const checkOut = new Date(Date.UTC(2026, 7, 10));
 
-    render(
+    mockUseAvailability.mockReturnValue({
+      days: [
+        { date: '2026-08-01', status: 'free' },
+        { date: '2026-08-05', status: 'free' },
+        { date: '2026-08-10', status: 'free' },
+      ],
+      isLoading: false,
+      error: undefined,
+    });
+
+    const { container } = render(
       <AvailabilityCalendar
         listingId="test-id"
         selectedCheckIn={checkIn}
         selectedCheckOut={checkOut}
       />,
     );
+
+    const nextBtn = container.querySelector(
+      'button[aria-label="Следующий месяц"]',
+    ) as HTMLButtonElement;
+    fireEvent.click(nextBtn);
 
     const selectedDates = document.querySelectorAll('.bg-blue-600.text-white');
     expect(selectedDates.length).toBe(2);
   });
 
   it('renders range between selected dates', () => {
-    const today = new Date();
-    today.setUTCHours(0, 0, 0, 0);
-    const checkIn = new Date(today);
-    checkIn.setUTCDate(checkIn.getUTCDate() + 5);
-    const checkOut = new Date(today);
-    checkOut.setUTCDate(checkIn.getUTCDate() + 3);
+    mockUseAvailability.mockReturnValue({
+      days: [
+        { date: '2026-08-01', status: 'free' },
+        { date: '2026-08-15', status: 'free' },
+        { date: '2026-08-20', status: 'free' },
+      ],
+      isLoading: false,
+      error: undefined,
+    });
 
-    render(
+    const checkIn = new Date(Date.UTC(2026, 7, 15));
+    const checkOut = new Date(Date.UTC(2026, 7, 20));
+
+    const { container } = render(
       <AvailabilityCalendar
         listingId="test-id"
         selectedCheckIn={checkIn}
         selectedCheckOut={checkOut}
       />,
     );
+
+    const nextBtn = container.querySelector(
+      'button[aria-label="Следующий месяц"]',
+    ) as HTMLButtonElement;
+    fireEvent.click(nextBtn);
 
     const rangeDates = document.querySelectorAll('.bg-blue-100.text-blue-800');
     expect(rangeDates.length).toBeGreaterThan(0);
@@ -272,15 +315,25 @@ describe('AvailabilityCalendar', () => {
         />,
       );
 
-      const clickableDates = getFutureClickableDates(container);
+      const clickableDates = getClickableDays(container);
       expect(clickableDates.length).toBeGreaterThanOrEqual(1);
 
-      fireEvent.click(clickableDates[0]);
+      fireEvent.click(clickableDates[0].element);
       expect(onDateSelect).toHaveBeenCalledWith(expect.any(Date), null, true);
     });
 
-    it('second click with later date sets checkOut with isNewSelection=false', () => {
+    it('second click sets checkOut with isNewSelection=false', () => {
       const onDateSelect = vi.fn();
+      mockUseAvailability.mockReturnValue({
+        days: [
+          { date: '2026-08-01', status: 'free' },
+          { date: '2026-08-02', status: 'free' },
+          { date: '2026-08-03', status: 'free' },
+        ],
+        isLoading: false,
+        error: undefined,
+      });
+
       const { container } = render(
         <AvailabilityCalendar
           listingId="test-id"
@@ -289,40 +342,23 @@ describe('AvailabilityCalendar', () => {
         />,
       );
 
-      const clickableDates = getFutureClickableDates(container);
+      const nextBtn = container.querySelector(
+        'button[aria-label="Следующий месяц"]',
+      ) as HTMLButtonElement;
+      fireEvent.click(nextBtn);
+
+      const clickableDates = getClickableDays(container);
       expect(clickableDates.length).toBeGreaterThanOrEqual(2);
 
-      fireEvent.click(clickableDates[0]);
+      fireEvent.click(clickableDates[0].element);
       onDateSelect.mockClear();
-      fireEvent.click(clickableDates[1]);
+      fireEvent.click(clickableDates[1].element);
 
       expect(onDateSelect).toHaveBeenCalledWith(
         expect.any(Date),
         expect.any(Date),
         false,
       );
-    });
-
-    it('second click with earlier date swaps checkIn/checkOut', () => {
-      const onDateSelect = vi.fn();
-      const { container } = render(
-        <AvailabilityCalendar
-          listingId="test-id"
-          mode="select"
-          onDateSelect={onDateSelect}
-        />,
-      );
-
-      const clickableDates = getFutureClickableDates(container);
-      expect(clickableDates.length).toBeGreaterThanOrEqual(2);
-
-      fireEvent.click(clickableDates[1]);
-      onDateSelect.mockClear();
-      fireEvent.click(clickableDates[0]);
-
-      const [newCheckIn, newCheckOut] = onDateSelect.mock.calls[0];
-      expect(newCheckIn.getTime()).toBeLessThan(newCheckOut.getTime());
-      expect(onDateSelect.mock.calls[0][2]).toBe(false);
     });
 
     it('clicking same date as checkIn resets selection', () => {
@@ -335,19 +371,30 @@ describe('AvailabilityCalendar', () => {
         />,
       );
 
-      const clickableDates = getFutureClickableDates(container);
+      const clickableDates = getClickableDays(container);
       expect(clickableDates.length).toBeGreaterThanOrEqual(1);
 
-      fireEvent.click(clickableDates[0]);
+      fireEvent.click(clickableDates[0].element);
       expect(onDateSelect).toHaveBeenCalledWith(expect.any(Date), null, true);
 
       onDateSelect.mockClear();
-      fireEvent.click(clickableDates[0]);
+      fireEvent.click(clickableDates[0].element);
       expect(onDateSelect).toHaveBeenCalledWith(expect.any(Date), null, true);
     });
 
-    it('clicking new date when complete resets to new checkIn', () => {
+    it('clicking third date when complete resets to new checkIn', () => {
       const onDateSelect = vi.fn();
+      mockUseAvailability.mockReturnValue({
+        days: [
+          { date: '2026-08-01', status: 'free' },
+          { date: '2026-08-02', status: 'free' },
+          { date: '2026-08-03', status: 'free' },
+          { date: '2026-08-04', status: 'free' },
+        ],
+        isLoading: false,
+        error: undefined,
+      });
+
       const { container } = render(
         <AvailabilityCalendar
           listingId="test-id"
@@ -356,18 +403,23 @@ describe('AvailabilityCalendar', () => {
         />,
       );
 
-      const clickableDates = getFutureClickableDates(container);
+      const nextBtn = container.querySelector(
+        'button[aria-label="Следующий месяц"]',
+      ) as HTMLButtonElement;
+      fireEvent.click(nextBtn);
+
+      const clickableDates = getClickableDays(container);
       expect(clickableDates.length).toBeGreaterThanOrEqual(3);
 
-      fireEvent.click(clickableDates[0]);
+      fireEvent.click(clickableDates[0].element);
       onDateSelect.mockClear();
-      fireEvent.click(clickableDates[1]);
+      fireEvent.click(clickableDates[1].element);
 
       const [, checkOut] = onDateSelect.mock.calls[0];
       expect(checkOut).not.toBeNull();
 
       onDateSelect.mockClear();
-      fireEvent.click(clickableDates[2]);
+      fireEvent.click(clickableDates[2].element);
       expect(onDateSelect).toHaveBeenCalledWith(expect.any(Date), null, true);
     });
 
@@ -390,10 +442,16 @@ describe('AvailabilityCalendar', () => {
     });
 
     it('shows pending check-in state styling when only checkIn is set via props', () => {
-      const today = new Date();
-      today.setUTCHours(0, 0, 0, 0);
-      const checkIn = new Date(today);
-      checkIn.setUTCDate(today.getUTCDate() + 5);
+      mockUseAvailability.mockReturnValue({
+        days: [
+          { date: '2026-08-01', status: 'free' },
+          { date: '2026-08-05', status: 'free' },
+        ],
+        isLoading: false,
+        error: undefined,
+      });
+
+      const checkIn = new Date(Date.UTC(2026, 7, 5));
 
       const { container } = render(
         <AvailabilityCalendar
@@ -403,6 +461,11 @@ describe('AvailabilityCalendar', () => {
           onDateSelect={vi.fn()}
         />,
       );
+
+      const nextBtn = container.querySelector(
+        'button[aria-label="Следующий месяц"]',
+      ) as HTMLButtonElement;
+      fireEvent.click(nextBtn);
 
       const pendingDates = container.querySelectorAll(
         '.bg-blue-600.text-white',

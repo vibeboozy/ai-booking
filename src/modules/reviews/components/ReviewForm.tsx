@@ -13,8 +13,10 @@
 'use client';
 
 import { useState, useTransition, useCallback } from 'react';
+import Link from 'next/link';
 import { StarRating } from '@/modules/reviews/components/StarRating';
 import { cn } from '@/shared/utils/cn';
+import { API, URL } from '@/shared/constants/urls';
 
 type ReviewFormProps = {
   bookingId: string;
@@ -97,7 +99,7 @@ export function ReviewForm({
       } else {
         // Default behavior: call API
         try {
-          const response = await fetch('/api/reviews', {
+          const response = await fetch(API.REVIEWS, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -223,12 +225,12 @@ export function ReviewForm({
 
       {/* Submit */}
       <div className="flex justify-end gap-3">
-        <a
-          href="/profile/trips"
+        <Link
+          href={URL.PROFILE_TRIPS}
           className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
         >
           Назад
-        </a>
+        </Link>
         <button
           type="submit"
           disabled={isSubmitting || rating === 0 || text.trim().length < 10}

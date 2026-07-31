@@ -15,6 +15,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import type { Trip } from '@/modules/profile/types';
+import { API } from '@/shared/constants/urls';
 
 export function useTrips(
   status?: 'upcoming' | 'history',
@@ -39,7 +40,7 @@ export function useTrips(
         params.set('status', status);
       }
 
-      const response = await fetch(`/api/profile/trips?${params.toString()}`);
+      const response = await fetch(`${API.PROFILE_TRIPS}?${params.toString()}`);
 
       if (!response.ok) {
         if (response.status === 401) {

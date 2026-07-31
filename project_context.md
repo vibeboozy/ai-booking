@@ -39,6 +39,7 @@ TripVibe — современная платформа бронирования 
 5. **Transparent pricing** — итоговая цена на чекауте включает все сборы. Никаких скрытых комиссий в UI.
 6. **Progressive enhancement** — базовый поиск работает без JS; интерактив (автокомплит, слайдеры) — поверх.
 7. **Mock payment** — оплата имитируется (`POST /api/bookings/mock-pay`). Интерфейс готов к замене на Stripe позже.
+8. **URL & API constants** — все URL-адреса (URL) и API-эндпоинты (API) определяются в `src/shared/constants/urls.ts`. При использовании `router.push`, `redirect`, `Link href`, `fetch` — импортировать и использовать константы.
 
 ## Project Structure
 

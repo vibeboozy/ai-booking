@@ -10,6 +10,7 @@ import Link from 'next/link';
 import { auth } from '@/lib/auth';
 import { getAllUserTrips } from '@/modules/profile/profile.repository';
 import { TripsList } from '@/modules/profile';
+import { URL } from '@/shared/constants/urls';
 
 type ProfileTripsPageProps = {
   searchParams: Promise<{ status?: string; success?: string }>;
@@ -21,7 +22,7 @@ export default async function ProfileTripsPage({
   const session = await auth();
 
   if (!session?.user) {
-    redirect('/login?callbackUrl=/profile/trips');
+    redirect(`${URL.LOGIN}?callbackUrl=${URL.PROFILE_TRIPS}`);
   }
 
   const params = await searchParams;
@@ -37,7 +38,7 @@ export default async function ProfileTripsPage({
       <main className="mx-auto max-w-3xl px-4 py-8">
         {/* Breadcrumb */}
         <nav className="mb-6 flex items-center gap-2 text-sm text-gray-500">
-          <Link href="/profile" className="hover:text-gray-700">
+          <Link href={URL.PROFILE} className="hover:text-gray-700">
             Профиль
           </Link>
           <span>/</span>

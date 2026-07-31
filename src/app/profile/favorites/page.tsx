@@ -10,12 +10,13 @@ import Link from 'next/link';
 import { auth } from '@/lib/auth';
 import { getUserFavorites } from '@/modules/profile/profile.repository';
 import { FavoritesList } from '@/modules/profile';
+import { URL } from '@/shared/constants/urls';
 
 export default async function ProfileFavoritesPage() {
   const session = await auth();
 
   if (!session?.user) {
-    redirect('/login?callbackUrl=/profile/favorites');
+    redirect(`${URL.LOGIN}?callbackUrl=${URL.PROFILE_FAVORITES}`);
   }
 
   // Prefetch favorites on server (cached with React.cache)
@@ -26,7 +27,7 @@ export default async function ProfileFavoritesPage() {
       <main className="mx-auto max-w-6xl px-4 py-8">
         {/* Breadcrumb */}
         <nav className="mb-6 flex items-center gap-2 text-sm text-gray-500">
-          <Link href="/profile" className="hover:text-gray-700">
+          <Link href={URL.PROFILE} className="hover:text-gray-700">
             Профиль
           </Link>
           <span>/</span>

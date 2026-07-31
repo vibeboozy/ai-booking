@@ -14,6 +14,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import type { AvailabilityDay } from '@/modules/listing/types';
+import { API } from '@/shared/constants/urls';
 
 export function useAvailability(
   listingId: string,
@@ -27,8 +28,8 @@ export function useAvailability(
     queryKey: ['availability', listingId, month],
     queryFn: async () => {
       const url = month
-        ? `/api/listings/${listingId}/availability?month=${month}`
-        : `/api/listings/${listingId}/availability`;
+        ? `${API.LISTINGS_AVAILABILITY(listingId)}?month=${month}`
+        : API.LISTINGS_AVAILABILITY(listingId);
 
       const res = await fetch(url);
       if (!res.ok) throw new Error('Failed to fetch availability');

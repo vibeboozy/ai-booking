@@ -8,12 +8,13 @@
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { auth } from '@/lib/auth';
+import { URL } from '@/shared/constants/urls';
 
 export default async function ProfilePage() {
   const session = await auth();
 
   if (!session?.user) {
-    redirect('/login?callbackUrl=/profile');
+    redirect(`${URL.LOGIN}?callbackUrl=${URL.PROFILE}`);
   }
 
   return (
@@ -33,7 +34,7 @@ export default async function ProfilePage() {
         {/* Quick links */}
         <div className="grid gap-4 sm:grid-cols-2">
           <Link
-            href="/profile/trips"
+            href={URL.PROFILE_TRIPS}
             className="flex items-center gap-4 rounded-xl border border-gray-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md"
           >
             <span className="text-3xl">✈️</span>
@@ -46,7 +47,7 @@ export default async function ProfilePage() {
           </Link>
 
           <Link
-            href="/profile/favorites"
+            href={URL.PROFILE_FAVORITES}
             className="flex items-center gap-4 rounded-xl border border-gray-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md"
           >
             <span className="text-3xl">❤️</span>

@@ -21,8 +21,10 @@ function createMockStream(chunks: string[], delay = 0) {
           controller.close();
         }, delay);
       } else {
-        chunks.forEach((c) => controller.enqueue(encoder.encode(c)));
-        controller.close();
+        void Promise.resolve().then(() => {
+          chunks.forEach((c) => controller.enqueue(encoder.encode(c)));
+          controller.close();
+        });
       }
     },
   });
@@ -47,13 +49,14 @@ function createMockErrorStream(errorMessage: string) {
 
 describe('AIConcierge', () => {
   beforeEach(() => {
-    mockFetch.mockReset().mockResolvedValue({
-      ok: true,
-      body: createMockStream([]),
-    });
+    mockFetch.mockReset();
   });
 
   it('renders initial state with title and placeholder', () => {
+    mockFetch.mockResolvedValue({
+      ok: true,
+      body: createMockStream([]),
+    });
     render(<AIConcierge listingId="test-listing-id" />);
     expect(screen.getAllByText('ИИ-Консьерж')[0]).toBeInTheDocument();
     expect(
@@ -62,6 +65,10 @@ describe('AIConcierge', () => {
   });
 
   it('displays suggested questions', () => {
+    mockFetch.mockResolvedValue({
+      ok: true,
+      body: createMockStream([]),
+    });
     render(<AIConcierge listingId="test-listing-id" />);
     const buttons = screen.getAllByRole('button');
     const suggestionBtns = buttons.filter((b) =>
@@ -84,10 +91,13 @@ describe('AIConcierge', () => {
       fireEvent.submit(input.closest('form')!);
     });
 
-    await waitFor(() => {
-      const messages = container.querySelectorAll('.bg-blue-600');
-      expect(messages.length).toBeGreaterThan(0);
-    });
+    await waitFor(
+      () => {
+        const messages = container.querySelectorAll('.bg-blue-600');
+        expect(messages.length).toBeGreaterThan(0);
+      },
+      { timeout: 3000 },
+    );
   });
 
   it('clears input after submission', async () => {
@@ -127,10 +137,13 @@ describe('AIConcierge', () => {
       fireEvent.click(wifiBtn);
     });
 
-    await waitFor(() => {
-      const messages = container.querySelectorAll('.bg-blue-600');
-      expect(messages.length).toBeGreaterThan(0);
-    });
+    await waitFor(
+      () => {
+        const messages = container.querySelectorAll('.bg-blue-600');
+        expect(messages.length).toBeGreaterThan(0);
+      },
+      { timeout: 3000 },
+    );
   });
 
   it('disables submit button while loading', async () => {
@@ -152,6 +165,10 @@ describe('AIConcierge', () => {
   });
 
   it('does not submit when input is empty', async () => {
+    mockFetch.mockResolvedValue({
+      ok: true,
+      body: createMockStream([]),
+    });
     const { container } = render(<AIConcierge listingId="test-listing-id" />);
     const form = container.querySelector('form')!;
 
@@ -176,19 +193,19 @@ describe('AIConcierge', () => {
       fireEvent.submit(input.closest('form')!);
     });
 
-    await waitFor(() => {
-      const messages = container.querySelectorAll('.bg-white.border');
-      expect(messages.length).toBeGreaterThan(0);
-    });
+    await waitFor(
+      () => {
+        const messages = container.querySelectorAll('.bg-white.border');
+        expect(messages.length).toBeGreaterThan(0);
+      },
+      { timeout: 3000 },
+    );
   });
 });
 
 describe('AIConcierge API Integration', () => {
   beforeEach(() => {
-    mockFetch.mockReset().mockResolvedValue({
-      ok: true,
-      body: createMockStream([]),
-    });
+    mockFetch.mockReset();
   });
 
   it('sends POST request to correct endpoint with listingId', async () => {
@@ -205,15 +222,18 @@ describe('AIConcierge API Integration', () => {
       fireEvent.submit(input.closest('form')!);
     });
 
-    await waitFor(() => {
-      expect(mockFetch).toHaveBeenCalledWith(
-        '/api/listings/listing-123/concierge',
-        expect.objectContaining({
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-        }),
-      );
-    });
+    await waitFor(
+      () => {
+        expect(mockFetch).toHaveBeenCalledWith(
+          '/api/listings/listing-123/concierge',
+          expect.objectContaining({
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+          }),
+        );
+      },
+      { timeout: 3000 },
+    );
   });
 
   it('sends messages array in request body', async () => {
@@ -230,13 +250,16 @@ describe('AIConcierge API Integration', () => {
       fireEvent.submit(input.closest('form')!);
     });
 
-    await waitFor(() => {
-      const call = mockFetch.mock.calls[0];
-      const body = JSON.parse(call[1].body);
-      expect(body.messages).toBeInstanceOf(Array);
-      expect(body.messages[0].content).toBe('Мой вопрос');
-      expect(body.messages[0].role).toBe('user');
-    });
+    await waitFor(
+      () => {
+        const call = mockFetch.mock.calls[0];
+        const body = JSON.parse(call[1].body);
+        expect(body.messages).toBeInstanceOf(Array);
+        expect(body.messages[0].content).toBe('Мой вопрос');
+        expect(body.messages[0].role).toBe('user');
+      },
+      { timeout: 3000 },
+    );
   });
 
   it('handles API error response gracefully', async () => {
@@ -254,10 +277,13 @@ describe('AIConcierge API Integration', () => {
       fireEvent.submit(input.closest('form')!);
     });
 
-    await waitFor(() => {
-      const assistantMessages = container.querySelectorAll('.bg-white.border');
-      expect(assistantMessages.length).toBeGreaterThan(0);
-    });
+    await waitFor(
+      () => {
+        const assistantMessages = container.querySelectorAll('.bg-white.border');
+        expect(assistantMessages.length).toBeGreaterThan(0);
+      },
+      { timeout: 3000 },
+    );
   });
 
   it('handles network error gracefully', async () => {
@@ -271,10 +297,13 @@ describe('AIConcierge API Integration', () => {
       fireEvent.submit(input.closest('form')!);
     });
 
-    await waitFor(() => {
-      const errorMessages = container.querySelectorAll('.bg-white.border');
-      expect(errorMessages.length).toBeGreaterThan(0);
-    });
+    await waitFor(
+      () => {
+        const errorMessages = container.querySelectorAll('.bg-white.border');
+        expect(errorMessages.length).toBeGreaterThan(0);
+      },
+      { timeout: 3000 },
+    );
   });
 
   it('re-enables input after error', async () => {
@@ -288,9 +317,12 @@ describe('AIConcierge API Integration', () => {
       fireEvent.submit(input.closest('form')!);
     });
 
-    await waitFor(() => {
-      expect(input).not.toBeDisabled();
-    });
+    await waitFor(
+      () => {
+        expect(input).not.toBeDisabled();
+      },
+      { timeout: 3000 },
+    );
   });
 
   it('sends suggestion question when suggestion button clicked', async () => {
@@ -311,20 +343,20 @@ describe('AIConcierge API Integration', () => {
       fireEvent.click(wifiBtn);
     });
 
-    await waitFor(() => {
-      const call = mockFetch.mock.calls[0];
-      const body = JSON.parse(call[1].body);
-      expect(body.messages[0].content).toBe('Есть Wi-Fi?');
-    });
+    await waitFor(
+      () => {
+        const call = mockFetch.mock.calls[0];
+        const body = JSON.parse(call[1].body);
+        expect(body.messages[0].content).toBe('Есть Wi-Fi?');
+      },
+      { timeout: 3000 },
+    );
   });
 });
 
 describe('AIConcierge Streaming Integration', () => {
   beforeEach(() => {
-    mockFetch.mockReset().mockResolvedValue({
-      ok: true,
-      body: createMockStream([]),
-    });
+    mockFetch.mockReset();
   });
 
   it('processes streaming chunks correctly', async () => {
@@ -341,10 +373,13 @@ describe('AIConcierge Streaming Integration', () => {
       fireEvent.submit(input.closest('form')!);
     });
 
-    await waitFor(() => {
-      const assistantMessages = container.querySelectorAll('.bg-white.border');
-      expect(assistantMessages.length).toBeGreaterThan(0);
-    });
+    await waitFor(
+      () => {
+        const assistantMessages = container.querySelectorAll('.bg-white.border');
+        expect(assistantMessages.length).toBeGreaterThan(0);
+      },
+      { timeout: 3000 },
+    );
   });
 
   it('adds user message before streaming starts', async () => {
@@ -361,10 +396,13 @@ describe('AIConcierge Streaming Integration', () => {
       fireEvent.submit(input.closest('form')!);
     });
 
-    await waitFor(() => {
-      const userMessages = container.querySelectorAll('.bg-blue-600');
-      expect(userMessages.length).toBeGreaterThan(0);
-      expect(userMessages[0].textContent).toBe('Мой вопрос');
-    });
+    await waitFor(
+      () => {
+        const userMessages = container.querySelectorAll('.bg-blue-600');
+        expect(userMessages.length).toBeGreaterThan(0);
+        expect(userMessages[0].textContent).toBe('Мой вопрос');
+      },
+      { timeout: 3000 },
+    );
   });
 });

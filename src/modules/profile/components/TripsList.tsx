@@ -20,6 +20,7 @@ import { useTrips } from '@/modules/profile/hooks/useTrips';
 import { useCancelTrip } from '@/modules/profile/hooks/useCancelTrip';
 import { formatPrice } from '@/shared/utils/formatPrice';
 import { cn } from '@/shared/utils/cn';
+import { URL } from '@/shared/constants/urls';
 import type { Trip } from '@/modules/profile/types';
 
 type TripsListProps = {
@@ -90,7 +91,7 @@ function TripCard({ trip }: { trip: Trip }) {
         <div className="mb-2 flex items-start justify-between gap-2">
           <div>
             <Link
-              href={`/listings/${listing.id}`}
+              href={URL.LISTING(listing.id)}
               className="text-lg font-semibold hover:text-primary"
             >
               {listing.title}
@@ -130,7 +131,7 @@ function TripCard({ trip }: { trip: Trip }) {
           <div className="flex gap-2">
             {canReview && (
               <Link
-                href={`/profile/trips/${booking.id}/review`}
+                href={URL.TRIP_REVIEW(booking.id)}
                 className="rounded-lg bg-primary px-3 py-1.5 text-sm font-medium text-white hover:bg-primary/90"
               >
                 Оставить отзыв
@@ -179,7 +180,7 @@ function EmptyState({ status }: { status: 'upcoming' | 'history' }) {
       </p>
       {status === 'upcoming' && (
         <Link
-          href="/"
+          href={URL.HOME}
           className="mt-4 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90"
         >
           Найти жильё

@@ -15,6 +15,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { API } from '@/shared/constants/urls';
 
 type MockPaymentButtonProps = {
   bookingId: string;
@@ -31,14 +32,14 @@ export function MockPaymentButton({
   const handlePayment = async () => {
     setIsLoading(true);
     try {
-      const res = await fetch('/api/bookings/mock-pay', {
+      const res = await fetch(API.BOOKINGS_MOCK_PAY, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ bookingId }),
       });
 
       if (res.ok) {
-        router.push('/profile/trips?success=true');
+        router.push(`${URL.PROFILE_TRIPS}?success=true`);
       } else {
         console.error('Payment failed');
       }

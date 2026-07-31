@@ -19,6 +19,7 @@ import { Label } from '@/shared/ui/label';
 import { LocationAutocomplete } from './LocationAutocomplete';
 import { DateRangePicker } from './DateRangePicker';
 import { buildSearchUrl } from '@/shared/utils/buildSearchUrl';
+import { URL } from '@/shared/constants/urls';
 import type { Location } from '@/modules/search/types';
 
 // [START_SEARCH_BAR_COMPONENT]
@@ -173,7 +174,7 @@ export function SearchBar({ className }: SearchBarProps) {
     <div className={className}>
       <form
         ref={formRef}
-        action="/search"
+        action={URL.SEARCH}
         method="get"
         onSubmit={handleSubmit}
         className="relative"

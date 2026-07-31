@@ -13,6 +13,7 @@ import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { getBookingById } from '@/modules/booking/booking.repository';
+import { URL } from '@/shared/constants/urls';
 import { formatPrice } from '@/shared/utils/formatPrice';
 import { parseLocalDateOnly } from '@/shared/utils/date';
 import { CheckCircle } from 'lucide-react';
@@ -118,13 +119,13 @@ export default async function BookingSuccessPage({
 
       <div className="mt-6 flex gap-4">
         <Link
-          href={`/listings/${booking.listingId}`}
+          href={URL.LISTING(booking.listingId)}
           className="flex-1 py-3 px-4 text-center border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
         >
           Вернуться к объекту
         </Link>
         <Link
-          href="/trips"
+          href={URL.PROFILE_TRIPS}
           className="flex-1 py-3 px-4 text-center bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
         >
           Мои поездки

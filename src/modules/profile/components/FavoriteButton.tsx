@@ -14,10 +14,11 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useOptimistic, useTransition, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/shared/utils/cn';
+import { API, URL } from '@/shared/constants/urls';
 
 type FavoriteButtonProps = {
   listingId: string;
@@ -51,6 +52,31 @@ function HeartIcon({
   );
 }
 
+async function toggleFavorite(
+  favorited: boolean,
+  listingId: string,
+): Promise<boolean> {
+  const method = favorited ? 'DELETE' : 'POST';
+  const url = favorited ? API.FAVORITES_DETAIL(listingId) : API.FAVORITES;
+  const body = favorited ? undefined : JSON.stringify({ listingId });
+
+  const response = await fetch(url, {
+    method,
+    headers: body ? { 'Content-Type': 'application/json' } : undefined,
+    body,
+  });
+
+  if (response.status === 401) {
+    throw { needsAuth: true };
+  }
+
+  if (!response.ok) {
+    throw new Error('Ошибка при обновлении избранного');
+  }
+
+  return !favorited;
+}
+
 export function FavoriteButton({
   listingId,
   initialFavorited = false,
@@ -59,9 +85,13 @@ export function FavoriteButton({
   className,
 }: FavoriteButtonProps) {
   const router = useRouter();
-  const [isFavorited, setIsFavorited] = useState(initialFavorited);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+
+  const [optimisticFavorited, setOptimisticFavorited] = useOptimistic(
+    initialFavorited,
+    (state, newValue: boolean) => newValue,
+  );
 
   const sizeClasses = {
     sm: 'h-4 w-4',
@@ -69,60 +99,33 @@ export function FavoriteButton({
   };
 
   const handleToggle = async () => {
-    // Prevent double-clicks
-    if (isLoading) {
-      return;
-    }
+    if (isPending) return;
 
-    // Store previous state for rollback
-    const previousFavorited = isFavorited;
-    setIsLoading(true);
+    const previousFavorited = optimisticFavorited;
+    const nextFavorited = !previousFavorited;
+
     setError(null);
 
-    // Optimistic update
-    setIsFavorited(!previousFavorited);
+    startTransition(async () => {
+      setOptimisticFavorited(nextFavorited);
 
-    try {
-      const method = previousFavorited ? 'DELETE' : 'POST';
-      const url = previousFavorited
-        ? `/api/favorites/${listingId}`
-        : '/api/favorites';
-      const body = previousFavorited
-        ? undefined
-        : JSON.stringify({ listingId });
-
-      const response = await fetch(url, {
-        method,
-        headers: body ? { 'Content-Type': 'application/json' } : undefined,
-        body,
-      });
-
-      if (response.status === 401) {
-        // Not authenticated - redirect to login
-        setIsFavorited(previousFavorited);
-        router.push(
-          `/login?callbackUrl=${encodeURIComponent(window.location.pathname)}`,
-        );
-        return;
+      try {
+        await toggleFavorite(previousFavorited, listingId);
+        router.refresh();
+      } catch (err: unknown) {
+        setOptimisticFavorited(previousFavorited);
+        if (err && typeof err === 'object' && 'needsAuth' in err) {
+          router.push(
+            `${URL.LOGIN}?callbackUrl=${encodeURIComponent(window.location.pathname)}`,
+          );
+          return;
+        }
+        const message =
+          err instanceof Error ? err.message : 'Неизвестная ошибка';
+        setError(message);
+        setTimeout(() => setError(null), 3000);
       }
-
-      if (!response.ok) {
-        throw new Error('Ошибка при обновлении избранного');
-      }
-
-      // Success - refresh the page to sync any other favorite buttons
-      router.refresh();
-    } catch (err) {
-      // Rollback on error
-      setIsFavorited(previousFavorited);
-      const message = err instanceof Error ? err.message : 'Неизвестная ошибка';
-      setError(message);
-
-      // Clear error after 3 seconds
-      setTimeout(() => setError(null), 3000);
-    } finally {
-      setIsLoading(false);
-    }
+    });
   };
 
   return (
@@ -130,26 +133,26 @@ export function FavoriteButton({
       <button
         type="button"
         onClick={handleToggle}
-        disabled={isLoading}
+        disabled={isPending}
         data-testid="favorite-toggle"
         aria-label={
-          isFavorited ? 'Удалить из избранного' : 'Добавить в избранное'
+          optimisticFavorited ? 'Удалить из избранного' : 'Добавить в избранное'
         }
         className={cn(
           'flex items-center gap-2 rounded-lg px-3 py-2 transition-all',
           'hover:bg-gray-100',
           'focus:outline-none focus:ring-2 focus:ring-primary/50',
           'disabled:opacity-50 disabled:cursor-not-allowed',
-          isFavorited
+          optimisticFavorited
             ? 'text-red-500 hover:text-red-600'
             : 'text-gray-500 hover:text-gray-600',
           className,
         )}
       >
-        <HeartIcon filled={isFavorited} className={sizeClasses[size]} />
+        <HeartIcon filled={optimisticFavorited} className={sizeClasses[size]} />
         {showLabel && (
           <span className="text-sm font-medium">
-            {isFavorited ? 'В избранном' : 'Добавить в избранное'}
+            {optimisticFavorited ? 'В избранном' : 'Добавить в избранное'}
           </span>
         )}
       </button>
@@ -170,7 +173,7 @@ export function FavoriteButtonWithAuth(
   if (!props.isAuthenticated) {
     return (
       <Link
-        href={`/login?callbackUrl=${encodeURIComponent(`/listings/${props.listingId}`)}`}
+        href={`${URL.LOGIN}?callbackUrl=${encodeURIComponent(URL.LISTING(props.listingId))}`}
         className={cn(
           'flex items-center justify-center rounded-full p-2',
           'text-gray-500 hover:text-gray-600',

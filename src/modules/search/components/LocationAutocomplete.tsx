@@ -15,6 +15,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Input } from '@/shared/ui/input';
 import type { Location } from '@/modules/search/types';
+import { API } from '@/shared/constants/urls';
 
 // [START_LOCATION_AUTOCOMPLETE_INPUT]
 
@@ -68,7 +69,7 @@ export function LocationAutocomplete({
 
     try {
       const res = await fetch(
-        `/api/locations/autocomplete?q=${encodeURIComponent(query)}&limit=${API_LIMIT}`,
+        `${API.LOCATIONS_AUTOCOMPLETE}?q=${encodeURIComponent(query)}&limit=${API_LIMIT}`,
         { signal: controller.signal },
       );
 
