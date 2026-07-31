@@ -239,7 +239,7 @@ describe('AIConcierge Real API Integration', () => {
       }
 
       expect(results.every((r) => r)).toBe(true);
-    });
+    }, 15000);
   });
 
   describe('Error handling', () => {

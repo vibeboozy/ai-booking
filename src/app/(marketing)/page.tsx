@@ -10,9 +10,13 @@
  * - Implement search logic inline in page
  */
 
+import { auth } from '@/lib/auth';
 import { SearchBar } from '@/modules/search';
+import { URL } from '@/shared/constants/urls';
 
-export default function HomePage() {
+export default async function HomePage() {
+  const session = await auth();
+
   return (
     <main className="container py-16">
       <section className="mx-auto max-w-2xl text-center">
@@ -31,16 +35,18 @@ export default function HomePage() {
         <SearchBar />
       </section>
 
-      <section className="mx-auto mt-16 max-w-2xl text-center">
-        <div className="flex flex-wrap justify-center gap-3">
-          <a
-            href="/login"
-            className="inline-flex h-10 items-center justify-center rounded-lg border border-border px-6 text-sm font-medium hover:bg-muted"
-          >
-            Войти
-          </a>
-        </div>
-      </section>
+      {!session?.user && (
+        <section className="mx-auto mt-16 max-w-2xl text-center">
+          <div className="flex flex-wrap justify-center gap-3">
+            <a
+              href={URL.LOGIN}
+              className="inline-flex h-10 items-center justify-center rounded-lg border border-border px-6 text-sm font-medium hover:bg-muted"
+            >
+              Войти
+            </a>
+          </div>
+        </section>
+      )}
     </main>
   );
 }

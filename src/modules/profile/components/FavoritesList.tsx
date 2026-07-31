@@ -19,6 +19,7 @@ import { cn } from '@/shared/utils/cn';
 import { formatPrice } from '@/shared/utils/formatPrice';
 import { FavoriteButton } from './FavoriteButton';
 import type { ListingPreview } from '@/shared/types/listing';
+import { API, URL } from '@/shared/constants/urls';
 
 function FavoriteCard({
   listing,
@@ -46,7 +47,7 @@ function FavoriteCard({
       )}
     >
       {/* Image */}
-      <Link href={`/listings/${listing.id}`} className="block">
+      <Link href={URL.LISTING(listing.id)} className="block">
         <div className="relative aspect-[4/3] overflow-hidden">
           <Image
             src={listing.images[0] || '/placeholder.jpg'}
@@ -66,7 +67,7 @@ function FavoriteCard({
       <div className="p-3">
         <div className="flex items-start justify-between gap-2">
           <Link
-            href={`/listings/${listing.id}`}
+            href={URL.LISTING(listing.id)}
             className="flex-1 font-medium leading-tight hover:text-primary"
           >
             {listing.title}
@@ -110,7 +111,7 @@ function EmptyState() {
         Нажмите на сердечко на понравившихся объектах, чтобы добавить их сюда
       </p>
       <Link
-        href="/"
+        href={URL.HOME}
         className="mt-6 rounded-lg bg-primary px-6 py-2.5 text-sm font-medium text-white hover:bg-primary/90"
       >
         Найти жильё
@@ -153,7 +154,7 @@ export function FavoritesList({ initialFavorites }: FavoritesListProps) {
       setError(null);
 
       try {
-        const response = await fetch('/api/profile/favorites');
+        const response = await fetch(API.PROFILE_FAVORITES);
         if (!response.ok) {
           if (response.status === 401) {
             throw new Error('Требуется авторизация');
@@ -174,7 +175,7 @@ export function FavoritesList({ initialFavorites }: FavoritesListProps) {
 
   const handleRemove = async (listingId: string) => {
     try {
-      const response = await fetch(`/api/favorites/${listingId}`, {
+      const response = await fetch(API.FAVORITES_DETAIL(listingId), {
         method: 'DELETE',
       });
 

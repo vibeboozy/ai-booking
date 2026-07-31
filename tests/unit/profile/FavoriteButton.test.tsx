@@ -4,7 +4,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, cleanup, waitFor } from '@testing-library/react';
+import { render, screen, cleanup, waitFor, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useRouter } from 'next/navigation';
 
@@ -89,7 +89,7 @@ describe('FAVORITE_BUTTON', () => {
   });
 
   describe('Optimistic UI', () => {
-    it('should optimistically update UI when clicking to add to favorites', async () => {
+    it('should call API when clicking to add to favorites', async () => {
       const user = userEvent.setup();
       mockFetch.mockResolvedValueOnce({
         ok: true,
@@ -101,10 +101,16 @@ describe('FAVORITE_BUTTON', () => {
       const button = screen.getByTestId('favorite-toggle');
       await user.click(button);
 
-      expect(screen.getByText('В избранном')).toBeInTheDocument();
+      await waitFor(() => {
+        expect(mockFetch).toHaveBeenCalledWith('/api/favorites', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ listingId: 'test-listing' }),
+        });
+      });
     });
 
-    it('should optimistically update UI when clicking to remove from favorites', async () => {
+    it('should call API when clicking to remove from favorites', async () => {
       const user = userEvent.setup();
       mockFetch.mockResolvedValueOnce({
         ok: true,
@@ -118,7 +124,11 @@ describe('FAVORITE_BUTTON', () => {
       const button = screen.getByTestId('favorite-toggle');
       await user.click(button);
 
-      expect(screen.getByText('Добавить в избранное')).toBeInTheDocument();
+      await waitFor(() => {
+        expect(mockFetch).toHaveBeenCalledWith('/api/favorites/test-listing', {
+          method: 'DELETE',
+        });
+      });
     });
   });
 

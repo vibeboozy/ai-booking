@@ -1,14 +1,15 @@
 /**
  * ANCHOR: shared
  * PURPOSE: Edge-compatible часть конфигурации NextAuth (middleware).
- * Dependencies: next-auth.
+ * Dependencies: next-auth, @/shared/constants/urls.
  */
 
 import type { NextAuthConfig } from 'next-auth';
+import { URL } from '@/shared/constants/urls';
 
 export const authConfig = {
   pages: {
-    signIn: '/login',
+    signIn: URL.LOGIN,
   },
   session: {
     strategy: 'jwt',

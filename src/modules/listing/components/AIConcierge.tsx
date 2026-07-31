@@ -17,6 +17,7 @@
 import { useState, useCallback, useRef } from 'react';
 import { Send, Loader2 } from 'lucide-react';
 import { CONCIERGE_SUGGESTED_QUESTIONS } from '@/shared/constants/ai';
+import { API } from '@/shared/constants/urls';
 
 interface ChatMessage {
   id: string;
@@ -81,7 +82,7 @@ export function AIConcierge({ listingId }: AIConciergeProps) {
       let assistantMessageAdded = false;
 
       try {
-        const response = await fetch(`/api/listings/${listingId}/concierge`, {
+        const response = await fetch(API.LISTINGS_CONCIERGE(listingId), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ messages: [userMessage] }),
@@ -145,7 +146,7 @@ export function AIConcierge({ listingId }: AIConciergeProps) {
 
       let assistantMessageAdded = false;
 
-      fetch(`/api/listings/${listingId}/concierge`, {
+      fetch(API.LISTINGS_CONCIERGE(listingId), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ messages: [userMessage] }),

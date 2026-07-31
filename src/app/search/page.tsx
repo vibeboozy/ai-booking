@@ -29,6 +29,7 @@
 
 // [START SEARCH_PAGE_LAYOUT]
 import type { Metadata } from 'next';
+import { URL } from '@/shared/constants/urls';
 import { parseSearchParams } from '@/shared/utils/parseSearchParams';
 import { searchListings } from '@/modules/search/search.repository';
 import { SearchFilters } from '@/modules/search/components/SearchFilters';
@@ -125,7 +126,7 @@ function EmptyState() {
         Попробуйте изменить параметры поиска
       </p>
       <a
-        href="/search"
+        href={URL.SEARCH}
         className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
       >
         Сбросить фильтры

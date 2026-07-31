@@ -13,6 +13,7 @@
 'use client';
 
 import { useState, useCallback, useEffect } from 'react';
+import { API } from '@/shared/constants/urls';
 
 interface UseFavoritesOptions {
   initialFavoriteIds?: Set<string>;
@@ -42,7 +43,7 @@ export function useFavorites(options: UseFavoritesOptions = {}): {
 
     const fetchFavorites = async () => {
       try {
-        const response = await fetch('/api/profile/favorites');
+        const response = await fetch(API.PROFILE_FAVORITES);
         if (response.ok) {
           const data = await response.json();
           const ids: Set<string> = new Set(
@@ -74,7 +75,7 @@ export function useFavorites(options: UseFavoritesOptions = {}): {
       try {
         if (isCurrentlyFavorited) {
           // Remove from favorites
-          const response = await fetch(`/api/favorites/${listingId}`, {
+          const response = await fetch(API.FAVORITES_DETAIL(listingId), {
             method: 'DELETE',
           });
 
@@ -89,7 +90,7 @@ export function useFavorites(options: UseFavoritesOptions = {}): {
           });
         } else {
           // Add to favorites
-          const response = await fetch('/api/favorites', {
+          const response = await fetch(API.FAVORITES, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ listingId }),

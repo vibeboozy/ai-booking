@@ -26,6 +26,7 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
+import { URL } from '@/shared/constants/urls';
 import { parseSearchParams } from '@/shared/utils/parseSearchParams';
 import { buildSearchUrl } from '@/shared/utils/buildSearchUrl';
 import type { SearchParams } from '@/shared/schemas/searchParams';
@@ -58,7 +59,7 @@ export function useSearchFilters(): {
     console.log(
       '[search][useSearchFilters][USE_SEARCH_FILTERS_HOOK][CLEAR_PARAMS][ENTRY]',
     );
-    router.push('/search');
+    router.push(URL.SEARCH);
     console.log(
       '[search][useSearchFilters][USE_SEARCH_FILTERS_HOOK][CLEAR_PARAMS][EXIT]',
     );

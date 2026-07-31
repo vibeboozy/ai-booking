@@ -21,6 +21,7 @@ import { DateDisplay } from '@/modules/booking/components/DateDisplay';
 import { PriceBreakdown } from '@/modules/booking/components/PriceBreakdown';
 import { useCheckout } from '@/modules/booking/hooks/useCheckout';
 import { formatPrice } from '@/shared/utils/formatPrice';
+import { URL } from '@/shared/constants/urls';
 
 type CheckoutFormProps = {
   listing: ListingDetail;
@@ -41,7 +42,7 @@ export function CheckoutForm({ listing }: CheckoutFormProps) {
   const handleConfirm = async () => {
     const id = await submit();
     if (id) {
-      router.push(`/booking-success/${id}`);
+      router.push(URL.BOOKING_SUCCESS(id));
     }
   };
 

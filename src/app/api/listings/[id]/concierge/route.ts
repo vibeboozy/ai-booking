@@ -196,7 +196,9 @@ async function submitCompletion(
     }
 
     const data = await response.json();
-    return data.choices?.[0]?.message?.content ?? null;
+    return data.choices?.[0]?.message?.content
+        ? (data.choices?.[0]?.message?.content as string).trim()
+        : null;
   } catch {
     return null;
   }
